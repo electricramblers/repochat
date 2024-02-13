@@ -6,3 +6,4 @@ tiktoken
 sentence-transformers
 termcolor
 langchain-community
+pyyaml

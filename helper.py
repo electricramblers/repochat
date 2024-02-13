@@ -2,6 +2,11 @@
 
 import os
 from termcolor import colored
+from repochat.constants import (
+    absolute_path_to_config,
+    absolutepath_to_repo_directory,
+    absolutepath_to_database_directory,
+)
 
 # List of files to include
 files = ["app.py"]
@@ -44,3 +49,21 @@ with open("prompt.txt", "w") as outfile:
             print(f"Error: {filename} not found")
 
 print(colored("Finished", "yellow"))
+
+print(
+    colored(
+        f"The absolute path to the config is: {absolute_path_to_config()}", "magenta"
+    )
+)
+print(
+    colored(
+        f"The absolute path to the repository is: {absolutepath_to_repo_directory()}",
+        "magenta",
+    )
+)
+print(
+    colored(
+        f"The absolute path to the database is: {absolutepath_to_database_directory()}",
+        "magenta",
+    )
+)
