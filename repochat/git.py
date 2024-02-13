@@ -1,5 +1,7 @@
 import requests
 import streamlit as st
+import uuid
+from git import Repo
 from termcolor import colored
 from .utils import url_name, clone_repo
 
@@ -12,20 +14,38 @@ from .constants import (
 
 
 def git_form(repo_path):
-    print(colored(f"repo path: {repo_path}", "red"))
     config = configuration()
+    git_url = config["github"]["url"]
+    type_repository_answer = check_git_url(git_url)
+    print(colored(f"Repo info: {type_repository_answer}", "yellow"))
+    for k, v in type_repository_answer.items():
+        if not k:
+            print(colored(f"The yaml repository does not exist: {k}", "red"))
+        elif k and v:
+            print(colored("The yaml repository exists and is public.", "cyan"))
+            db_name, git_form = public_git_form(repo_path)
+            return db_name, git_form
+        elif k and not v:
+            print(colored("The yaml reposistory exists and is private", "cyan"))
+            exit()
+
+
+def public_git_form(repo_path):
+    form_key = "git"
+    # Initialize the form with a unique key
     with st.sidebar:
         st.title("GitHub Link")
-        with st.form("git"):
+        with st.form(form_key):
             git_url = st.text_input(
-                "Enter GitHub Repository Link", value=config["github"]["url"]
+                "Enter GitHub Repository Link", value=configuration()["github"]["url"]
             )
             submit_git = st.form_submit_button("Submit")
+
     if submit_git:
         with st.spinner("Checking GitHub URL"):
-            if not (git_url):
+            if not git_url:
                 st.warning("Enter GitHub URL")
-                st.stop()
+                return None, None
             try:
                 response = requests.get(git_url)
                 if response.status_code == 200 and url_name(git_url):
@@ -33,12 +53,41 @@ def git_form(repo_path):
                     db_name = url_name(git_url)
                 else:
                     st.error("Enter Valid GitHub Repo")
-                    st.stop()
+                    return None, None
             except requests.exceptions.MissingSchema:
                 st.error("Invalid URL. Please include the scheme (e.g., https://)")
-                st.stop()
+                return None, None
 
         with st.spinner(f"Cloning {db_name} Repository"):
             clone_repo(git_url, repo_path)
             st.success("Cloned successfully!")
             return db_name, 1
+
+    return None, None
+
+
+def check_git_url(url):
+    print(colored(f"This is the url I am checking: {url}", "green"))
+    # Try to clone the repository using GitPython
+    try:
+        Repo.clone_from(url, "/tmp/test_repo")
+        # If cloning succeeds, the URL exists and is public
+        return {"exists": True, "public": True}
+    except Exception as e:
+        pass
+
+    # If cloning fails, try to make a HEAD request to the URL
+    git_url = url.replace("https://", "https://")
+    response = requests.head(git_url, timeout=5, allow_redirects=True)
+
+    # If the HEAD request is successful and the response code is 2xx, the URL exists and is public
+    if response.status_code // 100 == 2:
+        return {"exists": True, "public": True}
+
+    # If the HEAD request is successful and the response code is 401, the URL exists and is private
+    elif response.status_code == 401:
+        return {"exists": True, "public": False}
+
+    # If the HEAD request fails or returns any other response code, the URL does not exist
+    else:
+        return {"exists": False, "public": None}

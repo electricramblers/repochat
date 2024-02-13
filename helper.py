@@ -4,12 +4,13 @@ import os
 from termcolor import colored
 from repochat.constants import (
     absolute_path_to_config,
+    configuration,
     absolute_path_to_repo_directory,
     absolute_path_to_database_directory,
 )
 
 # List of files to include
-files = ["app.py"]
+files = ["app.py", "repochat/git.py", "repochat/constants.py", "repochat/utils,py"]
 
 ADDED_TEXT = """The code from multiple files is present in this prompt.  Each file name looks like "# <something>.py"
 
@@ -57,13 +58,13 @@ print(
 )
 print(
     colored(
-        f"The absolute path to the repository is: {absolutepath_to_repo_directory()}",
+        f"The absolute path to the repository is: {absolute_path_to_repo_directory()}",
         "magenta",
     )
 )
 print(
     colored(
-        f"The absolute path to the database is: {absolutepath_to_database_directory()}",
+        f"The absolute path to the database is: {absolute_path_to_database_directory()}",
         "magenta",
     )
 )

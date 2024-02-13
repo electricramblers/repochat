@@ -7,3 +7,4 @@ sentence-transformers
 termcolor
 langchain-community
 pyyaml
+GitPython
