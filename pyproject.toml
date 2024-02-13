@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "repochat"
+version = "0.1.0"
+description = ""
+authors = ["Mike Fischer <mike@theelectricrambler.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+requests = "^2.31.0"
+streamlit = "^1.31.1"
+langchain = "^0.1.6"
+chromadb = "^0.4.22"
+tiktoken = "^0.6.0"
+sentence-transformers = "^2.3.1"
+termcolor = "^2.4.0"
+langchain-community = "^0.0.19"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

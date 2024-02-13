@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+
+import os
+from termcolor import colored
+
+# List of files to include
+files = ["app.py"]
+
+ADDED_TEXT = """The code from multiple files is present in this prompt.  Each file name looks like "# <something>.py"
+
+Be exceptionally cautious to preserve code, there is a reason the code is there even if you are fixing problems. \n\nHERE IS THE PROBLEM:"""
+
+# Create the output file
+with open("prompt.txt", "w") as outfile:
+    # Write the ADDED_TEXT content at the beginning of the file
+    outfile.write(ADDED_TEXT + "\n\n")
+
+    # Iterate through each file
+    for filename in files:
+        # Check if the file exists in the current directory or any subdirectories
+        if any(
+            os.path.isfile(os.path.join(root, filename)) for root, _, _ in os.walk(".")
+        ):
+            # Get the full path of the file
+            filepath = next(
+                os.path.join(root, filename)
+                for root, _, _ in os.walk(".")
+                if os.path.isfile(os.path.join(root, filename))
+            )
+
+            # Open the file and read its contents
+            with open(filepath, "r") as infile:
+                file_contents = infile.read()
+
+                # Remove trailing whitespace and carriage returns
+                file_contents = file_contents.rstrip()
+
+            # Write a comment indicating the file name
+            outfile.write(f"\n\n# {filename}\n")
+
+            # Write the file contents
+            outfile.write(file_contents)
+        else:
+            print(f"Error: {filename} not found")
+
+print(colored("Finished", "yellow"))
