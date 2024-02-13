@@ -4,20 +4,29 @@ import shutil
 import subprocess
 import streamlit as st
 
+from .constants import (
+    absolute_path_to_config,
+    configuration,
+    absolute_path_to_repo_directory,
+    absolute_path_to_database_directory,
+)
+
+
 def init_session_state():
     SESSION_DEFAULTS = {
         "messages": [],
         "chroma_db": None,
         "db_loaded": False,
-        "repo_path": './cloned_repo',
+        "repo_path": f"{absolute_path_to_repo_directory()}",
         "git_form": False,
         "qa": None,
-        "db_name": None
+        "db_name": None,
     }
 
     for keys, values in SESSION_DEFAULTS.items():
         if keys not in st.session_state:
             st.session_state[keys] = values
+
 
 def url_name(url):
     pattern = r"https?://github.com/([^/]+)/([^/]+)"
@@ -30,14 +39,16 @@ def url_name(url):
         st.error("Enter valid GitHub URL")
         st.stop()
 
+
 def clone_repo(git_url, repo_path):
     if os.path.exists(repo_path):
         shutil.rmtree(repo_path)
-    
+
     git_url = git_url.replace(".git", "")
 
-    command = f'git clone {git_url}.git {repo_path} && rm -rf {repo_path}/.git'
+    command = f"git clone {git_url}.git {repo_path} && rm -rf {repo_path}/.git"
     subprocess.run(command, shell=True)
+
 
 def prompt_format(system_prompt, instruction):
     B_INST, E_INST = "[INST]", "[/INST]"
@@ -46,6 +57,7 @@ def prompt_format(system_prompt, instruction):
     prompt_template = B_INST + SYSTEM_PROMPT + instruction + E_INST
     return prompt_template
 
+
 def model_prompt():
     system_prompt = """You are a helpful assistant, you have good knowledge in coding and you will use the provided context to answer user questions with detailed explanations.
     Read the given context before answering questions and think step by step. If you can not answer a user question based on the provided context, inform the user. Do not use any other information for answering user"""
@@ -53,6 +65,7 @@ def model_prompt():
     Context: {context}
     User: {question}"""
     return prompt_format(system_prompt, instruction)
+
 
 def custom_que_prompt():
     que_system_prompt = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question and give only the standalone question as output in the tags <question> and </question>.

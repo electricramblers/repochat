@@ -168,3 +168,5 @@ config.yaml
 repochat.sublime-workspace
 repochat.sublime-project
 **/*.txt
+**/db_*
+**/repo_*
