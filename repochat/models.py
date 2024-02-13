@@ -1,12 +1,14 @@
-from langchain.llms import LlamaCpp
-from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_community.llms import LlamaCpp
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
+
 def hf_embeddings():
     return HuggingFaceEmbeddings(
-        model_name = "sentence-transformers/all-mpnet-base-v2",
+        model_name="sentence-transformers/all-mpnet-base-v2",
     )
+
 
 def code_llama():
     callbackmanager = CallbackManager([StreamingStdOutCallbackHandler()])
@@ -18,6 +20,6 @@ def code_llama():
         f16_kv=True,
         callback_manager=callbackmanager,
         verbose=True,
-        use_mlock=True
+        use_mlock=True,
     )
     return llm
