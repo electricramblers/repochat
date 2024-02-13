@@ -4,8 +4,8 @@ import os
 from termcolor import colored
 from repochat.constants import (
     absolute_path_to_config,
-    absolutepath_to_repo_directory,
-    absolutepath_to_database_directory,
+    absolute_path_to_repo_directory,
+    absolute_path_to_database_directory,
 )
 
 # List of files to include

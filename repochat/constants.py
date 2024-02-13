@@ -18,7 +18,7 @@ def configuration():
     return cfg
 
 
-def absolutepath_to_repo_directory():
+def absolute_path_to_repo_directory():
     config = configuration()
     url_to_breakdown = config["github"]["url"]
     match = re.search(r"github\.com/([^/]+)/([^/]+)", url_to_breakdown)
@@ -33,7 +33,7 @@ def absolutepath_to_repo_directory():
     return repository_path
 
 
-def absolutepath_to_database_directory():
+def absolute_path_to_database_directory():
     config = configuration()
     url_to_breakdown = config["github"]["url"]
     match = re.search(r"github\.com/([^/]+)/([^/]+)", url_to_breakdown)
