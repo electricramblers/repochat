@@ -4,6 +4,9 @@ import re
 from termcolor import colored
 
 
+REFRESH_MESSAGE = "🔄 The repository and database have been successfully refreshed. The application will restart now."
+
+
 def absolute_path_to_config():
     current_dir = os.path.abspath(os.path.dirname(__file__))
     parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))

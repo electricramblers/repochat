@@ -2,10 +2,11 @@ import time
 import streamlit as st
 
 from repochat.utils import init_session_state
-from repochat.git import git_form
+from repochat.git import git_form, refresh_repository
 from repochat.db import vector_db, load_to_db
 from repochat.models import hf_embeddings, ai_agent
 from repochat.chain import response_chain
+from repochat.constants import REFRESH_MESSAGE
 
 init_session_state()
 
@@ -14,17 +15,18 @@ st.set_page_config(
     page_icon="💻",
     initial_sidebar_state="expanded",
     menu_items={
-        "Report a bug": "https://github.com/pnkvalavala/repochat/issues",
-        "About": "No need to worry if you can't understand GitHub code or repositories anymore! Introducing RepoChat, where you can effortlessly chat and discuss all things related to GitHub repositories.",
+        "Report a bug": "https://github.com/electricramblers/repochat/issues",
+        "About": "Do or do not. There is no try. -Yoda",
     },
 )
 
 st.markdown("<h1 style='text-align: center;'>RepoChat</h1>", unsafe_allow_html=True)
 
 try:
-    st.session_state["db_name"], st.session_state["git_form"] = git_form(
-        st.session_state["repo_path"]
-    )
+    if not st.session_state["db_loaded"]:
+        st.session_state["db_name"], st.session_state["git_form"] = git_form(
+            st.session_state["repo_path"]
+        )
 
     if st.session_state["git_form"]:
         with st.spinner("Loading the contents to database. This may take some time..."):
@@ -39,6 +41,20 @@ try:
         st.session_state["db_loaded"] = True
 except TypeError:
     pass
+
+# Add a Streamlit button for refreshing the repository only in the sidebar
+with st.sidebar:
+    if st.button("Refresh Repository"):
+        refresh_repository()
+        st.session_state["db_loaded"] = False
+        st.experimental_rerun()
+
+    # Display the refresh message only in the sidebar
+    if st.session_state.get("refresh_message", False):
+        st.warning(REFRESH_MESSAGE)
+        st.session_state["refresh_message"] = False
+
+# Chat UI
 
 if st.session_state["db_loaded"]:
     for message in st.session_state["messages"]:
@@ -78,16 +94,3 @@ if st.session_state["db_loaded"]:
         st.session_state["messages"].append(
             {"role": "assistant", "content": result["answer"]}
         )
-
-
-# Helper function to determine the programming language used in a code block
-def get_language(code_block):
-    # Determine the programming language used in the code block
-    # This function may need to be modified to handle different languages
-    if code_block.startswith("import os") or code_block.startswith("import time"):
-        return "python"
-    elif code_block.startswith("<html>"):
-        return "html"
-    # Add more language detection logic here as needed
-    else:
-        return "python"
