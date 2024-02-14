@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import streamlit as st
 
+
 from .constants import (
     absolute_path_to_config,
     configuration,
@@ -49,8 +50,43 @@ def clone_repo(git_url, repo_path, branch="main"):
     try:
         Repo.clone_from(git_url, repo_path, branch=branch)
     except GitCommandError as e:
-        print(colored(f"Error cloning repository: {e}", "red"))
         raise ValueError(f"Error cloning repository: {e}") from None
+    except Exception as e:
+        print(colored(f"Error cloning repository: {e}", "red"))
+        return
+
+    try:
+        print(colored("FUCK NO", "red"))
+        # Fetching repository details
+        repo_name = repository_name_only()
+        token = configuration()["github"]["token"]
+        username = configuration()["github"]["username"]
+        target_folder = absolute_path_to_database_directory()
+
+        # Setting up config
+        config = {
+            "github": {
+                "username": username,
+                "repo_name": repo_name,
+                "token": token,
+            }
+        }
+
+        repo_url = f"https://api.github.com/repos/{config['github']['username']}/{config['github']['repo_name']}?access_token={config['github']['token']}"
+
+        # Creating target directory if not exists
+        os.makedirs(target_folder, exist_ok=True)
+        os.chdir(target_folder)
+
+        try:
+            req_json = requests.get(repo_url).json()
+            repo_git_url = req_json["git_url"]
+            os.system(f"git clone {repo_git_url}")
+        except requests.exceptions.RequestException as e:
+            print(colored(f"Error: {e}", "red"))
+            # Handle error as per requirement
+    except Exception as e:
+        print(colored(f"Error: {e}", "red"))
 
 
 def prompt_format(system_prompt, instruction):

@@ -2,6 +2,7 @@ import requests
 import streamlit as st
 import uuid
 import os
+import re
 import shutil
 from git import Repo
 from git.exc import GitCommandError
@@ -36,9 +37,9 @@ def git_form(repo_path):
     print(colored(f"Repo info: {type_repository_answer}", "yellow"))
     for k, v in type_repository_answer.items():
         if not k:
-            print(colored(f"The yaml repository does not exist: {k}", "red"))
+            print(colored(f"The repository does not exist: {k}", "red"))
         elif k and v:
-            print(colored("The yaml repository exists and is public.", "cyan"))
+            print(colored("The repository exists and is public.", "cyan"))
             output = public_git_form(repo_path)
             if output is None:
                 continue
@@ -69,6 +70,10 @@ def private_git_form(repo_path):
             git_branch = st.text_input(
                 "Enter GitHub Repository Branch", value=default_branch
             )
+            git_token = st.text_input(
+                "Enter GitHub Personal Access Token",
+                value=configuration()["github"]["token"],
+            )
             submit_git = st.form_submit_button("Submit")
 
     if submit_git:
@@ -77,8 +82,20 @@ def private_git_form(repo_path):
                 st.warning("Enter GitHub URL")
                 return None, None
             try:
-                response = requests.get(git_url)
-                if response.status_code == 200:  # and url_name(git_url):
+                # Extract the owner and repo from the URL
+                match = re.match(r"https://github.com/([^/]+)/([^/]+)", git_url)
+                if match:
+                    owner, repo = match.groups()
+                else:
+                    st.error("Invalid GitHub URL")
+                    return None, None
+
+                # Use the GitHub API to check if the repository exists and is accessible
+                api_url = f"https://api.github.com/repos/{owner}/{repo}"
+                response = requests.get(
+                    api_url, headers={"Authorization": f"token {git_token}"}
+                )
+                if response.status_code == 200:
                     st.success("GitHub Link loaded successfully!")
                     db_name = url_name(git_url)
                 else:
@@ -90,7 +107,12 @@ def private_git_form(repo_path):
 
         with st.spinner(f"Cloning {db_name} Repository"):
             try:
-                Repo.clone_from(git_url, repo_path, branch=git_branch)
+                Repo.clone_from(
+                    git_url,
+                    repo_path,
+                    branch=git_branch,
+                    env={"GIT_ASKPASS": "echo", "GIT_USERNAME": git_token},
+                )
                 st.success("Cloned successfully!")
             except GitCommandError as e:
                 st.error(f"Error cloning repository: {e}")

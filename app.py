@@ -47,7 +47,7 @@ with st.sidebar:
     if st.button("Refresh Repository"):
         refresh_repository()
         st.session_state["db_loaded"] = False
-        st.experimental_rerun()
+        st.rerun()
 
     # Display the refresh message only in the sidebar
     if st.session_state.get("refresh_message", False):
