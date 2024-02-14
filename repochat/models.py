@@ -36,7 +36,7 @@ def model_chooser():
         model_to_use = Ollama(model=ai_model)
         print(colored("Success...", "cyan"))
         return model_to_use
-    except subprocess.CalledProcessError:
+    except:
         pass
     try:
         print(colored("Trying a remote ollama model.", "cyan"))
@@ -44,7 +44,7 @@ def model_chooser():
         if response.status_code == 200:
             ai_model = config["models"]["ollama"]["remote"]
             base_url = config["models"]["ollama"]["base_url"]
-            model_to_use = Ollama(model=ai_model, base_url=base_url)
+            model_to_use = Ollama(model=ai_model, base_url=str(base_url))
             return model_to_use
         else:
             raise Exception(

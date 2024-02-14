@@ -21,7 +21,7 @@ st.set_page_config(
 )
 
 st.markdown(
-    "<h1 style='text-align: center;'>SprocketSorcerer, the Automaton Archduke of Articulation</h1>",
+    "<h1 style='text-align: center;'>SprocketSorcerer\nThe Automaton Archduke of Articulation</h1>",
     unsafe_allow_html=True,
 )
 

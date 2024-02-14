@@ -12,6 +12,7 @@ from repochat.constants import (
 # List of files to include
 files = [
     "app.py",
+    "repochat/chain.py",
     "repochat/git.py",
     "repochat/constants.py",
     "repochat/utils.py",
