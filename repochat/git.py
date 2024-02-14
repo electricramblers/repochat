@@ -23,24 +23,22 @@ def git_form(repo_path):
             print(colored(f"The yaml repository does not exist: {k}", "red"))
         elif k and v:
             print(colored("The yaml repository exists and is public.", "cyan"))
-            db_name, git_form = public_git_form(repo_path)
-            return db_name, git_form
+            public_git_form(repo_path)
+            return
         elif k and not v:
             print(colored("The yaml reposistory exists and is private", "cyan"))
             exit()
 
 
 def public_git_form(repo_path):
-    form_key = "git"
-    # Initialize the form with a unique key
+    print(colored(f"I am executing public_git_form({repo_path})", "cyan"))
     with st.sidebar:
         st.title("GitHub Link")
-        with st.form(form_key):
+        with st.form("git"):
             git_url = st.text_input(
                 "Enter GitHub Repository Link", value=configuration()["github"]["url"]
             )
             submit_git = st.form_submit_button("Submit")
-
     if submit_git:
         with st.spinner("Checking GitHub URL"):
             if not git_url:

@@ -1,7 +1,15 @@
-from langchain_community.llms import LlamaCpp
+import requests
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain_community.llms import Ollama
+from termcolor import colored
+from .constants import (
+    absolute_path_to_config,
+    configuration,
+    absolute_path_to_repo_directory,
+    absolute_path_to_database_directory,
+)
 
 
 def hf_embeddings():
@@ -10,16 +18,41 @@ def hf_embeddings():
     )
 
 
-def code_llama():
+def model_chooser():
+    config = configuration()
+    model_to_use = None
+    model = None
+    base_url = None
+    try:
+        print(colored("Trying a local ollama model.", "cyan"))
+        output = subprocess.check_output(["ollama", "--version"])
+        ai_model = config["models"]["ollama"]["local"]
+        base_url = None
+        model_to_use = Ollama(model=ai_model)
+        return model_to_use
+    except subprocess.CalledProcessError:
+        pass
+    try:
+        print(colored("Trying a remote ollama model.", "cyan"))
+        response = requests.get(config["models"]["ollama"]["base_url"])
+        if response.status_code == 200:
+            ai_model = config["models"]["ollama"]["remote"]
+            base_url = config["models"]["ollama"]["base_url"]
+            model_to_use = Ollama(model=ai_model, base_url=base_url)
+            return model_to_use
+        else:
+            raise Exception(
+                colored(
+                    "Failed to get a successful response from the remote model.", "red"
+                )
+            )
+    except:
+        pass
+
+
+def ai_agent():
+    ai_model = model_chooser()
+    config = configuration()
     callbackmanager = CallbackManager([StreamingStdOutCallbackHandler()])
-    llm = LlamaCpp(
-        model_path="./models/codellama-7b.Q4_K_M.gguf",
-        n_ctx=2048,
-        max_tokens=200,
-        n_gpu_layers=1,
-        f16_kv=True,
-        callback_manager=callbackmanager,
-        verbose=True,
-        use_mlock=True,
-    )
+    llm = ai_model
     return llm
