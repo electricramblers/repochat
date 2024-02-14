@@ -2,6 +2,7 @@ import requests
 import streamlit as st
 import uuid
 from git import Repo
+from git.exc import GitCommandError
 from termcolor import colored
 from .utils import url_name, clone_repo
 
@@ -34,11 +35,60 @@ def git_form(repo_path):
 
 def public_git_form(repo_path):
     config = configuration()
+    default_branch = config["github"]["branch"]
+
     with st.sidebar:
         st.title("GitHub Link")
         with st.form("git"):
             git_url = st.text_input(
                 "Enter GitHub Repository Link", value=configuration()["github"]["url"]
+            )
+            git_branch = st.text_input(
+                "Enter GitHub Repository Branch", value=default_branch
+            )
+            submit_git = st.form_submit_button("Submit")
+
+    if submit_git:
+        with st.spinner("Checking GitHub URL"):
+            if not git_url:
+                st.warning("Enter GitHub URL")
+                return None, None
+            try:
+                response = requests.get(git_url)
+                if response.status_code == 200:  # and url_name(git_url):
+                    st.success("GitHub Link loaded successfully!")
+                    db_name = url_name(git_url)
+                else:
+                    st.error("Enter Valid GitHub Repo")
+                    return None, None
+            except requests.exceptions.MissingSchema:
+                st.error("Invalid URL. Please include the scheme (e.g., https://)")
+                return None, None
+
+        with st.spinner(f"Cloning {db_name} Repository"):
+            try:
+                Repo.clone_from(git_url, repo_path, branch=git_branch)
+                st.success("Cloned successfully!")
+            except GitCommandError as e:
+                st.error(f"Error cloning repository: {e}")
+                st.error("Please check the branch name and try again.")
+                return None, None
+
+            return db_name, 1
+
+    return None, None
+
+
+def private_git_form(repo_path):
+    config = configuration()
+    with st.sidebar:
+        st.title("GitHub Link")
+        with st.form("git"):
+            git_url = st.text_input(
+                "Enter GitHub Repository Link", value=config["github"]["url"]
+            )
+            git_branch = st.text_input(
+                "Enter Github Repository Branch", value=config["github"]["branch"]
             )
             submit_git = st.form_submit_button("Submit")
     if submit_git:

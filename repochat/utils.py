@@ -42,14 +42,15 @@ def url_name(url):
         st.stop()
 
 
-def clone_repo(git_url, repo_path):
-    if os.path.exists(repo_path):
-        shutil.rmtree(repo_path)
-
-    git_url = git_url.replace(".git", "")
-
-    command = f"git clone {git_url}.git {repo_path} && rm -rf {repo_path}/.git"
-    subprocess.run(command, shell=True)
+def clone_repo(git_url, repo_path, branch="main"):
+    """
+    Clone a git repository to the specified path.
+    """
+    try:
+        Repo.clone_from(git_url, repo_path, branch=branch)
+    except GitCommandError as e:
+        print(colored(f"Error cloning repository: {e}", "red"))
+        raise ValueError(f"Error cloning repository: {e}") from None
 
 
 def prompt_format(system_prompt, instruction):
