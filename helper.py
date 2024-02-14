@@ -21,7 +21,7 @@ files = [
 
 ADDED_TEXT = """The code from multiple files is present in this prompt.  Each file name looks like "# <something>.py"
 
-Be exceptionally cautious to preserve code, there is a reason the code is there even if you are fixing problems. \n\nHERE IS THE PROBLEM:"""
+Be exceptionally cautious to preserve code, there is a reason the code is there even if you are fixing problems. \n\nHERE IS THE PROBLEM:\n\n\n\nIt is very important that you carefully follow instuctions.  Step by step, slowly go through the code to solve the problem."""
 
 # Create the output file
 with open("prompt.txt", "w") as outfile:
