@@ -43,7 +43,13 @@ except TypeError:
 if st.session_state["db_loaded"]:
     for message in st.session_state["messages"]:
         with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+            if message["content"].startswith("```"):
+                # This message contains a code block
+                code_block = message["content"][3:-3]  # Remove the ``` delimiters
+                language = get_language(code_block)
+                st.code(code_block, language=language)
+            else:
+                st.markdown(message["content"])
 
     if prompt := st.chat_input("Enter your query"):
         st.session_state["messages"].append({"role": "user", "content": prompt})
@@ -60,6 +66,28 @@ if st.session_state["db_loaded"]:
                 time.sleep(0.05)
                 message_placeholder.markdown(full_response + "▌")
             message_placeholder.markdown(full_response)
+
+            if result["answer"].startswith("```"):
+                # The response contains a code block
+                code_block = result["answer"][3:-3]  # Remove the ``` delimiters
+                language = get_language(code_block)
+                st.code(code_block, language=language)
+            else:
+                st.markdown(result["answer"])
+
         st.session_state["messages"].append(
-            {"role": "assistant", "content": full_response}
+            {"role": "assistant", "content": result["answer"]}
         )
+
+
+# Helper function to determine the programming language used in a code block
+def get_language(code_block):
+    # Determine the programming language used in the code block
+    # This function may need to be modified to handle different languages
+    if code_block.startswith("import os") or code_block.startswith("import time"):
+        return "python"
+    elif code_block.startswith("<html>"):
+        return "html"
+    # Add more language detection logic here as needed
+    else:
+        return "python"

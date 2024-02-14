@@ -34,7 +34,6 @@ def git_form(repo_path):
 
 def public_git_form(repo_path):
     config = configuration()
-    print(colored(f"I am executing public_git_form({repo_path})", "cyan"))
     with st.sidebar:
         st.title("GitHub Link")
         with st.form("git"):
