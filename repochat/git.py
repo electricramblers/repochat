@@ -22,10 +22,16 @@ from .constants import (
 def refresh_repository():
     repo_path = absolute_path_to_repo_directory()
     database_path = absolute_path_to_database_directory()
-    if os.path.exists(repo_path):
-        shutil.rmtree(repo_path)
-    if os.path.exists(database_path):
-        shutil.rmtree(database_path)
+    try:
+        if os.path.exists(repo_path):
+            shutil.rmtree(repo_path)
+        if os.path.exists(database_path):
+            shutil.rmtree(database_path)
+    except PermissionError:
+        st.error(
+            "Failed to delete the repository and database folders. Please check the folder permissions."
+        )
+        return
     st.session_state["db_loaded"] = False
     st.session_state["refresh_message"] = True
 
