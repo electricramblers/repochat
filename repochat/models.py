@@ -6,6 +6,7 @@ from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain_community.llms import Ollama
 from termcolor import colored
+from typing import Any, List, Mapping, Optional
 from .constants import (
     absolute_path_to_config,
     configuration,
