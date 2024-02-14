@@ -11,7 +11,7 @@ from repochat.constants import REFRESH_MESSAGE
 init_session_state()
 
 st.set_page_config(
-    page_title="RepoChat",
+    page_title="SprocketSorcerer, the Automaton Archduke of Articulation",
     page_icon="💻",
     initial_sidebar_state="expanded",
     menu_items={
@@ -20,7 +20,10 @@ st.set_page_config(
     },
 )
 
-st.markdown("<h1 style='text-align: center;'>RepoChat</h1>", unsafe_allow_html=True)
+st.markdown(
+    "<h1 style='text-align: center;'>SprocketSorcerer, the Automaton Archduke of Articulation</h1>",
+    unsafe_allow_html=True,
+)
 
 try:
     if not st.session_state["db_loaded"]:
