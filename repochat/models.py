@@ -1,4 +1,6 @@
 import requests
+import os
+import subprocess
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
@@ -13,6 +15,7 @@ from .constants import (
 
 
 def hf_embeddings():
+    os.environ["TOKENIZERS_PARALLELISM"] = "false"
     return HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-mpnet-base-v2",
     )
@@ -29,6 +32,7 @@ def model_chooser():
         ai_model = config["models"]["ollama"]["local"]
         base_url = None
         model_to_use = Ollama(model=ai_model)
+        print(colored("Success...", "cyan"))
         return model_to_use
     except subprocess.CalledProcessError:
         pass

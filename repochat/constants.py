@@ -18,6 +18,18 @@ def configuration():
     return cfg
 
 
+def repository_name_only():
+    config = configuration()
+    url_to_breakdown = config["github"]["url"]
+    match = re.search(r"github\.com/([^/]+)/([^/]+)", url_to_breakdown)
+    if match:
+        a = match.group(1)
+        b = match.group(2)
+    else:
+        raise ValueError("Invalid GitHub URL")
+    return f"repository_{a}_{b}"
+
+
 def absolute_path_to_repo_directory():
     config = configuration()
     url_to_breakdown = config["github"]["url"]
@@ -31,6 +43,18 @@ def absolute_path_to_repo_directory():
     parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
     repository_path = os.path.join(parent_dir, f"repo_{a}_{b}")
     return repository_path
+
+
+def database_name_only():
+    config = configuration()
+    url_to_breakdown = config["github"]["url"]
+    match = re.search(r"github\.com/([^/]+)/([^/]+)", url_to_breakdown)
+    if match:
+        a = match.group(1)
+        b = match.group(2)
+    else:
+        raise ValueError("Invalid GitHub URL")
+    return f"database_{a}_{b}"
 
 
 def absolute_path_to_database_directory():

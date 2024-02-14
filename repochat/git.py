@@ -10,6 +10,8 @@ from .constants import (
     configuration,
     absolute_path_to_repo_directory,
     absolute_path_to_database_directory,
+    repository_name_only,
+    database_name_only,
 )
 
 
@@ -23,14 +25,15 @@ def git_form(repo_path):
             print(colored(f"The yaml repository does not exist: {k}", "red"))
         elif k and v:
             print(colored("The yaml repository exists and is public.", "cyan"))
-            public_git_form(repo_path)
-            return
+            output = public_git_form(repo_path)
+            return output
         elif k and not v:
             print(colored("The yaml reposistory exists and is private", "cyan"))
             exit()
 
 
 def public_git_form(repo_path):
+    config = configuration()
     print(colored(f"I am executing public_git_form({repo_path})", "cyan"))
     with st.sidebar:
         st.title("GitHub Link")
@@ -46,9 +49,10 @@ def public_git_form(repo_path):
                 return None, None
             try:
                 response = requests.get(git_url)
-                if response.status_code == 200 and url_name(git_url):
+                if response.status_code == 200:  # and url_name(git_url):
                     st.success("GitHub Link loaded successfully!")
                     db_name = url_name(git_url)
+                    # db_name = database_name_only()
                 else:
                     st.error("Enter Valid GitHub Repo")
                     return None, None
