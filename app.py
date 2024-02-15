@@ -47,7 +47,7 @@ except TypeError:
 
 # Add a Streamlit button for refreshing the repository only in the sidebar
 with st.sidebar:
-    if st.button("Refresh Repository"):
+    if st.button("Delete Repository"):
         refresh_repository()
         st.session_state["db_loaded"] = False
         st.rerun()

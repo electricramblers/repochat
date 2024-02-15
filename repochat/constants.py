@@ -4,7 +4,7 @@ import re
 from termcolor import colored
 
 
-REFRESH_MESSAGE = "🔄 The repository and database have been successfully refreshed. The application will restart now."
+REFRESH_MESSAGE = "🔄 The repository and database have been successfully deleted. The application will restart now."
 
 
 def absolute_path_to_config():

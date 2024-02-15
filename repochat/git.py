@@ -46,6 +46,17 @@ def git_form(repo_path):
     git_url = config["github"]["url"]
     type_repository_answer = check_git_url(git_url)
     print(colored(f"Repo info: {type_repository_answer}", "yellow"))
+
+    # Check if the repository already exists
+    if os.path.exists(repo_path):
+        warning_message = """
+        ⚠️ Warning: Repository already exists!
+
+        Please click the 'Delete Repository' button in the sidebar and then hit dismiss.
+        This will remove the existing repository and allow you to clone a new one.
+        """
+        st.markdown(warning_message, unsafe_allow_html=True)
+
     for k, v in type_repository_answer.items():
         if not k:
             print(colored(f"The repository does not exist: {k}", "red"))
