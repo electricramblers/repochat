@@ -99,7 +99,7 @@ def prompt_format(system_prompt, instruction):
 
 
 def model_prompt():
-    system_prompt = """You are a helpful assistant, you have good knowledge in coding and you will use the provided context to answer user questions with detailed explanations.
+    system_prompt = """You are a helpful assistant, you have good knowledge in coding and you will use the provided context to answer user questions with detailed explanations.  Always consider policies and summaries in markdown files.
     Read the given context before answering questions and think step by step. If you can not answer a user question based on the provided context, inform the user. Do not use any other information for answering user"""
     instruction = """
     Context: {context}
