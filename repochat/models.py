@@ -1,6 +1,8 @@
 import requests
 import os
+import socket
 import subprocess
+import urllib.parse
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.callbacks.manager import CallbackManager, CallbackManagerForLLMRun
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
@@ -25,78 +27,41 @@ def hf_embeddings():
 
 def model_chooser():
     config = configuration()
-    model_to_use = None
-    model = None
-    base_url = None
+    print(colored("Trying a local ollama model.", "cyan"))
     try:
-        print(colored("Trying a local ollama model.", "cyan"))
-        output = subprocess.check_output(["ollama", "--version"])
+        subprocess.check_output(["ollama", "--version"])
+        local_ollama = True
+    except (FileNotFoundError, subprocess.CalledProcessError) as e:
+        local_ollama = False
+        print(colored(f"Local ollama failed. Error: {e}", "cyan"))
+    try:
+        print(colored("Trying remote ollama model.", "cyan"))
+        remote_ollama = config["models"]["ollama"]["base_url"]
+        parsed_url = urllib.parse.urlparse(remote_ollama)
+        host = parsed_url.hostname
+        port = parsed_url.port
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(20)
+        s.connect((host, port))
+        s.close()
+        remote_ollama = True
+    except Exception as e:
+        print(colored(f"Remote ollama failed. Error: {e}", "cyan"))
+        remote_ollama = False
+    if local_ollama:
         ai_model = config["models"]["ollama"]["local"]
-        base_url = None
         model_to_use = Ollama(model=ai_model)
-        print(colored("Success...", "cyan"))
+        print(colored("Local Ollama Success", "cyan"))
         return model_to_use
-    except:
-        pass
-    try:
-        print(colored("Trying a remote ollama model.", "cyan"))
-        response = requests.get(config["models"]["ollama"]["base_url"])
-        if response.status_code == 200:
-            ai_model = config["models"]["ollama"]["remote"]
-            base_url = config["models"]["ollama"]["base_url"]
-            model_to_use = Ollama(model=ai_model, base_url=str(base_url))
-            return model_to_use
-        else:
-            raise Exception(
-                colored(
-                    "Failed to get a successful response from the remote model.", "red"
-                )
-            )
-    except:
-        pass
-
-
-class OpenRouterLLM:
-    n: int
-
-    @property
-    def _llm_type(self) -> str:
-        """Return the LLM type."""
-        return f"{OPENROUTERMODEL}"
-
-    def _call(
-        self,
-        prompt: str,
-        stop: Optional[List[str]] = None,
-        run_manager: Optional[CallbackManagerForLLMRun] = None,
-        **kwargs: Any,
-    ) -> str:
-        """Call the Mixtral LLM with the given prompt."""
-        YOUR_SITE_URL = "https://localhost"
-        headers = {
-            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-            "HTTP-Referer": YOUR_SITE_URL,
-            "Content-Type": "application/json",
-        }
-        data = {
-            "model": f"{OPENROUTERMODEL}",
-            "messages": [{"role": "user", "content": prompt}],
-        }
-        response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers=headers,
-            data=json.dumps(data),
-        )
-        output = response.json()["choices"][0]["message"]["content"]
-
-        if stop is not None:
-            raise ValueError("stop kwargs are not permitted.")
-        return output
-
-    @property
-    def _identifying_params(self) -> Mapping[str, Any]:
-        """Get the identifying parameters."""
-        return {"n": self.n}
+    elif remote_ollama:
+        ai_model = config["models"]["ollama"]["remote"]
+        remote_url = config["models"]["ollama"]["base_url"]
+        model_to_use = Ollama(model=ai_model, base_url=remote_url)
+        print(colored("Remote Ollama: Success", "cyan"))
+        return model_to_use
+    else:
+        print(colored("Error. No AI Model Available.", "red"))
+        exit(1)
 
 
 def ai_agent():
