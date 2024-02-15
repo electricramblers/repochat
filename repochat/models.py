@@ -15,6 +15,8 @@ from .constants import (
     configuration,
     absolute_path_to_repo_directory,
     absolute_path_to_database_directory,
+    repository_name_only,
+    database_name_only,
 )
 
 
