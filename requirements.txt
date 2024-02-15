@@ -8,3 +8,4 @@ termcolor
 langchain-community
 pyyaml
 GitPython
+openai

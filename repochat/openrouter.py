@@ -1,6 +1,10 @@
 import requests
 import os
+import json
 from termcolor import colored
+from langchain.callbacks.manager import CallbackManager, CallbackManagerForLLMRun
+from langchain_community.chat_models import ChatOpenAI
+
 from typing import Any, List, Mapping, Optional
 from .constants import (
     absolute_path_to_config,
@@ -12,44 +16,21 @@ from .constants import (
 )
 
 
-class OpenRouterLLM:
-    n: int
+class OpenRouterLLM(ChatOpenAI):
+    openai_api_base: str
+    openai_api_key: str
+    model_name: str
 
-    @property
-    def _llm_type(self) -> str:
-        """Return the LLM type."""
-        return f"{OPENROUTERMODEL}"
-
-    def _call(
+    def __init__(
         self,
-        prompt: str,
-        stop: Optional[List[str]] = None,
-        run_manager: Optional[CallbackManagerForLLMRun] = None,
-        **kwargs: Any,
-    ) -> str:
-        """Call the Mixtral LLM with the given prompt."""
-        YOUR_SITE_URL = "https://localhost"
-        headers = {
-            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-            "HTTP-Referer": YOUR_SITE_URL,
-            "Content-Type": "application/json",
-        }
-        data = {
-            "model": f"{OPENROUTERMODEL}",
-            "messages": [{"role": "user", "content": prompt}],
-        }
-        response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers=headers,
-            data=json.dumps(data),
+        model_name: str,
+        openai_api_key: Optional[str] = None,
+        openai_api_base: str = "https://openrouter.ai/api/v1",
+        **kwargs
+    ):
+        super().__init__(
+            openai_api_base=openai_api_base,
+            openai_api_key=openai_api_key,
+            model_name=model_name,
+            **kwargs
         )
-        output = response.json()["choices"][0]["message"]["content"]
-
-        if stop is not None:
-            raise ValueError("stop kwargs are not permitted.")
-        return output
-
-    @property
-    def _identifying_params(self) -> Mapping[str, Any]:
-        """Get the identifying parameters."""
-        return {"n": self.n}
