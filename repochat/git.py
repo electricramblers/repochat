@@ -7,7 +7,7 @@ import shutil
 from git import Repo
 from git.exc import GitCommandError
 from termcolor import colored
-from .utils import url_name, clone_repo
+from .utils import url_name, clone_repo, pruner
 
 from .constants import (
     absolute_path_to_config,
@@ -17,6 +17,11 @@ from .constants import (
     repository_name_only,
     database_name_only,
 )
+
+
+def post_clone_actions():
+    print(colored("Running post-clone actions", "magenta"))
+    pruner()
 
 
 def refresh_repository():
@@ -125,7 +130,8 @@ def private_git_form(repo_path):
                 st.error("Please check the branch name and try again.")
                 return None, None
 
-            return db_name, 1
+        post_clone_actions()
+        return db_name, 1
 
     return None, None
 
@@ -172,7 +178,8 @@ def public_git_form(repo_path):
                 st.error("Please check the branch name and try again.")
                 return None, None
 
-            return db_name, 1
+        post_clone_actions()
+        return db_name, 1
 
     return None, None
 
