@@ -34,25 +34,31 @@ def model_chooser():
     config = configuration()
     escalate = config["models"].get("escalation", True)
     print(colored("Trying a local ollama model.", "cyan"))
-    try:
-        subprocess.check_output(["ollama", "--version"])
-        local_ollama = True
-    except (FileNotFoundError, subprocess.CalledProcessError) as e:
+    if escalate:
+        try:
+            subprocess.check_output(["ollama", "--version"])
+            local_ollama = True
+        except (FileNotFoundError, subprocess.CalledProcessError) as e:
+            local_ollama = False
+            print(colored(f"Local ollama failed. Error: {e}", "cyan"))
+    else:
         local_ollama = False
-        print(colored(f"Local ollama failed. Error: {e}", "cyan"))
-    try:
-        print(colored("Trying remote ollama model.", "cyan"))
-        remote_ollama = config["models"]["ollama"]["base_url"]
-        parsed_url = urllib.parse.urlparse(remote_ollama)
-        host = parsed_url.hostname
-        port = parsed_url.port
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(20)
-        s.connect((host, port))
-        s.close()
-        remote_ollama = True
-    except Exception as e:
-        print(colored(f"Remote ollama failed. Error: {e}", "cyan"))
+    if escalate:
+        try:
+            print(colored("Trying remote ollama model.", "cyan"))
+            remote_ollama = config["models"]["ollama"]["base_url"]
+            parsed_url = urllib.parse.urlparse(remote_ollama)
+            host = parsed_url.hostname
+            port = parsed_url.port
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(20)
+            s.connect((host, port))
+            s.close()
+            remote_ollama = True
+        except Exception as e:
+            print(colored(f"Remote ollama failed. Error: {e}", "cyan"))
+            remote_ollama = False
+    else:
         remote_ollama = False
     try:
         print(colored("Trying Openrouter.ai model.", "cyan"))

@@ -13,6 +13,7 @@ from repochat.constants import (
 files = [
     "app.py",
     "repochat/git.py",
+    "repochat/models.py",
     "repochat/constants.py",
     "repochat/utils.py",
 ]

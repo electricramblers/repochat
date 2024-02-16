@@ -1,15 +1,5 @@
-import time
 import streamlit as st
-
-from repochat.utils import init_session_state
-from repochat.git import git_form, refresh_repository
-from repochat.db import vector_db, load_to_db
-from repochat.models import hf_embeddings, ai_agent
-from repochat.chain import response_chain
-from repochat.constants import REFRESH_MESSAGE
-
-
-init_session_state()
+import time
 
 st.set_page_config(
     page_title="SprocketSorcerer, the Automaton Archduke of Articulation",
@@ -20,6 +10,52 @@ st.set_page_config(
         "About": "Do or do not. There is no try. -Yoda",
     },
 )
+
+
+def apply_custom_css():
+    st.markdown(
+        """
+        <style>
+        /* This affects all text within the Streamlit app */
+        html, body, [class*="st-"] {
+            font-size: 18px;
+        }
+        /* This specifically affects markdown text */
+        .markdown-text-container {
+            font-size: 18px;
+        }
+        /* This specifically affects chat messages */
+        .stChatMessage {
+            font-size: 18px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+apply_custom_css()
+
+# Now we can import the other modules and continue with our script
+from repochat.utils import init_session_state
+from repochat.git import git_form, refresh_repository
+from repochat.db import vector_db, load_to_db
+from repochat.models import hf_embeddings, ai_agent
+from repochat.chain import response_chain
+from repochat.constants import REFRESH_MESSAGE
+
+init_session_state()
+
+
+# st.set_page_config(
+#    page_title="SprocketSorcerer, the Automaton Archduke of Articulation",
+#    page_icon="💻",
+#    initial_sidebar_state="expanded",
+#    menu_items={
+#        "Report a bug": "https://github.com/electricramblers/repochat/issues",
+#        "About": "Do or do not. There is no try. -Yoda",
+#    },
+# )
 
 st.markdown(
     "<h1 style='text-align: center;'>SprocketSorcerer\nThe Automaton Archduke of Articulation</h1>",
