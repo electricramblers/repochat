@@ -8,6 +8,7 @@ from repochat.models import hf_embeddings, ai_agent
 from repochat.chain import response_chain
 from repochat.constants import REFRESH_MESSAGE
 
+
 init_session_state()
 
 st.set_page_config(
@@ -57,7 +58,6 @@ with st.sidebar:
         st.warning(REFRESH_MESSAGE)
         st.session_state["refresh_message"] = False
 
-# Chat UI
 
 if st.session_state["db_loaded"]:
     for message in st.session_state["messages"]:
@@ -65,35 +65,34 @@ if st.session_state["db_loaded"]:
             if message["content"].startswith("```"):
                 # This message contains a code block
                 code_block = message["content"][3:-3]  # Remove the ``` delimiters
-                language = get_language(code_block)
+                language = get_language(
+                    code_block
+                )  # Assuming a function get_language exists
                 st.code(code_block, language=language)
             else:
                 st.markdown(message["content"])
 
     if prompt := st.chat_input("Enter your query"):
         st.session_state["messages"].append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
 
         with st.chat_message("assistant"):
-            message_placeholder = st.empty()
             full_response = ""
             with st.spinner("Generating response..."):
                 result = st.session_state["qa"](prompt)
-            for chunk in result["answer"].split():
-                full_response += chunk + " "
-                time.sleep(0.05)
-                message_placeholder.markdown(full_response + "▌")
-            message_placeholder.markdown(full_response)
+            full_response += result["answer"]
+            time.sleep(0.05)  # This sleep might not be necessary anymore
 
             if result["answer"].startswith("```"):
                 # The response contains a code block
                 code_block = result["answer"][3:-3]  # Remove the ``` delimiters
-                language = get_language(code_block)
+                language = get_language(
+                    code_block
+                )  # Assuming a function get_language exists
                 st.code(code_block, language=language)
             else:
                 st.markdown(result["answer"])
 
+        # Update the messages state with the assistant's response
         st.session_state["messages"].append(
             {"role": "assistant", "content": result["answer"]}
         )
