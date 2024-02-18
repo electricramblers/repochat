@@ -1,9 +1,11 @@
 import os
 import shutil
-import streamlit as st
+from termcolor import colored
 from langchain_community.vectorstores import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import NotebookLoader, TextLoader
+from langchain_community.embeddings import HuggingFaceEmbeddings
+
 from .constants import (
     absolute_path_to_config,
     configuration,
@@ -14,7 +16,17 @@ from .constants import (
 )
 
 
+def hf_embeddings():
+    config = configuration()
+    embedding_model = config["models"]["embedding"]
+    os.environ["TOKENIZERS_PARALLELISM"] = "false"
+    return HuggingFaceEmbeddings(
+        model_name=embedding_model,
+    )
+
+
 def vector_db(embeddings, code):
+    print(colored("Vector DB Initialized", "cyan"))
     persist_directory = absolute_path_to_database_directory()
     collection_name = "db_collection"
     vec_db = Chroma.from_documents(
@@ -28,6 +40,7 @@ def vector_db(embeddings, code):
 
 
 def load_to_db(repo_path):
+    print(colored("Load to DB Initiated", "cyan"))
     docs = []
     for root, dirs, files in os.walk(repo_path):
         dirs[:] = [d for d in dirs if not d.startswith(".")]
@@ -46,6 +59,7 @@ def load_to_db(repo_path):
             except Exception as e:
                 pass
 
-    code_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=200)
+    code_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=128)
     code = code_splitter.split_documents(docs)
+    print(colored(f"Documents create: {len(code)}", "cyan"))
     return code

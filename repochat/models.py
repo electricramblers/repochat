@@ -3,7 +3,6 @@ import os
 import socket
 import subprocess
 import urllib.parse
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.callbacks.manager import CallbackManager, CallbackManagerForLLMRun
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain_community.chat_models import ChatOpenAI
@@ -41,13 +40,6 @@ class OpenRouterLLM(ChatOpenAI):
             model_name=model_name,
             **kwargs,
         )
-
-
-def hf_embeddings():
-    os.environ["TOKENIZERS_PARALLELISM"] = "false"
-    return HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-mpnet-base-v2",
-    )
 
 
 def model_chooser():

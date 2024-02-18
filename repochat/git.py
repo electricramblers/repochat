@@ -1,8 +1,11 @@
 import os
 import json
 import re
+import time
 import shutil
 from git import Repo
+from git.exc import GitCommandError
+
 import requests
 import urllib3
 
@@ -29,10 +32,7 @@ def clone_repository():
     Clones a Git repository to the specified directory.
 
     Args:
-        git_url (str): The URL of the Git repository to clone.
-        repo_dir (str): The directory to clone the repository into.
-        username (str, optional): The username to use when authenticating to a private repository.
-        password (str, optional): The password to use when authenticating to a private repository.
+        None
 
     Returns:
         None
@@ -47,16 +47,19 @@ def clone_repository():
     username = config["github"]["username"]
     password = config["github"]["token"]
     branch = config["github"]["branch"]
+
     try:
-        shutil.rmtree(absolute_path_to_repo_directory())
+        shutil.rmtree(repo_dir)
         print(colored("Removing existing repository.", "cyan"))
     except:
         pass
+
     try:
         shutil.rmtree(absolute_path_to_database_directory())
         print(colored("Removing existing database directory.", "cyan"))
     except:
         pass
+
     # Test if the repository is public or private
     response = requests.head(git_url, allow_redirects=True)
     if response.status_code == 403:
@@ -70,7 +73,11 @@ def clone_repository():
         )
 
     try:
-        Repo.clone_from(git_url, repo_dir)
-        print(colored("Cloning complete.", "cyan"))
+        repo = Repo.clone_from(git_url, repo_dir)
+        repo.git.checkout(branch)
+        print(colored(f"Cloned branch {branch}", "cyan"))
+        time.sleep(1)
+        return True
     except Exception as e:
-        raise GitError(f"Error cloning repository: {e}") from e
+        print(colored(f"Error cloning repository: {e}", "red"))
+        return False
