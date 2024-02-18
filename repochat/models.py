@@ -12,7 +12,6 @@ from langchain_community.llms import Ollama
 from termcolor import colored
 from typing import Any, List, Mapping, Optional
 
-from .openrouter import OpenRouterLLM
 
 from .constants import (
     absolute_path_to_config,
