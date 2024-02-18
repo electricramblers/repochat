@@ -172,3 +172,5 @@ repochat.sublime-project
 **/database_*
 **/repo_*
 .DS_Store
+**/*.sublime-workspace
+**/*.sublime-project

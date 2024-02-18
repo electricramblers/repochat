@@ -6,6 +6,7 @@ import urllib.parse
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.callbacks.manager import CallbackManager, CallbackManagerForLLMRun
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain_community.chat_models import ChatOpenAI
 
 from langchain_community.llms import Ollama
 from termcolor import colored
@@ -21,6 +22,26 @@ from .constants import (
     repository_name_only,
     database_name_only,
 )
+
+
+class OpenRouterLLM(ChatOpenAI):
+    openai_api_base: str
+    openai_api_key: str
+    model_name: str
+
+    def __init__(
+        self,
+        model_name: str,
+        openai_api_key: Optional[str] = None,
+        openai_api_base: str = "https://openrouter.ai/api/v1",
+        **kwargs,
+    ):
+        super().__init__(
+            openai_api_base=openai_api_base,
+            openai_api_key=openai_api_key,
+            model_name=model_name,
+            **kwargs,
+        )
 
 
 def hf_embeddings():

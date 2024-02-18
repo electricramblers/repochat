@@ -185,3 +185,30 @@ def pruner():
             os.remove(file_path)
         else:
             print(colored(f"{file_path} does not exist", "blue"))
+
+
+def check_git_url(url):
+    print(colored(f"This is the url I am checking: {url}", "green"))
+    # Try to clone the repository using GitPython
+    try:
+        Repo.clone_from(url, "/tmp/test_repo")
+        # If cloning succeeds, the URL exists and is public
+        return {"exists": True, "public": True}
+    except Exception as e:
+        pass
+
+    # If cloning fails, try to make a HEAD request to the URL
+    git_url = url.replace("https://", "https://")
+    response = requests.head(git_url, timeout=5, allow_redirects=True)
+
+    # If the HEAD request is successful and the response code is 2xx, the URL exists and is public
+    if response.status_code // 100 == 2:
+        return {"exists": True, "public": True}
+
+    # If the HEAD request is successful and the response code is 401, the URL exists and is private
+    elif response.status_code == 401:
+        return {"exists": True, "public": False}
+
+    # If the HEAD request fails or returns any other response code, the URL does not exist
+    else:
+        return {"exists": False, "public": None}
