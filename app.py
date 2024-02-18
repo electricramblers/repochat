@@ -11,6 +11,29 @@ from repochat.constants import (
 import time
 
 # -------------------------------------------------------------------------------
+# App fuctions
+# -------------------------------------------------------------------------------
+
+
+def reset_app_state():
+    # Reset session state variables
+    session_state = st.session_state
+    session_state.clone_done = False
+    session_state.prune_done = False
+    session_state.ingest_done = False
+    session_state.ready = False
+    session_state.pop("chroma_db", None)
+    session_state.pop("qa", None)
+    session_state.pop("messages", None)
+
+
+def reset_app():
+    # Clear the main window
+    # Reset the app state
+    reset_app_state()
+
+
+# -------------------------------------------------------------------------------
 # Streamlit Functions
 # -------------------------------------------------------------------------------
 
@@ -46,7 +69,13 @@ def display_temporary_message(message):
     placeholder.empty()
 
 
+# -------------------------------------------------------------------------------
+# Streamlit tuff
+# -------------------------------------------------------------------------------
+
+
 def streamlit_function():
+    st.title("The Amazing Articulate Automaton")
     config = configuration()
     github_url = config["github"]["url"]
     github_branch = config["github"]["branch"]
@@ -95,12 +124,10 @@ def streamlit_function():
             st.error(f"Unexpected error: {str(e)}")
             return  # Stop execution if database creation fails
 
-    st.title("Hello World App")
-
     # -------------------------------------------------------------------------
     # Sidebar
     # -------------------------------------------------------------------------
-
+    st.sidebar.button("RESET", on_click=reset_app)
     st.sidebar.markdown(f"# Repository:")
     st.sidebar.write(f"{github_url}")
     st.sidebar.markdown(

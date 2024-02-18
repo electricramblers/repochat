@@ -35,7 +35,7 @@ def custom_que_prompt():
 def response_chain(db, llm):
     retriever = db.as_retriever()
     search_kwargs = {
-        "k": 3,
+        "k": 5,
     }
 
     retriever.search_kwargs.update(search_kwargs)
