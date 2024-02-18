@@ -47,16 +47,6 @@ from repochat.constants import REFRESH_MESSAGE
 init_session_state()
 
 
-# st.set_page_config(
-#    page_title="SprocketSorcerer, the Automaton Archduke of Articulation",
-#    page_icon="💻",
-#    initial_sidebar_state="expanded",
-#    menu_items={
-#        "Report a bug": "https://github.com/electricramblers/repochat/issues",
-#        "About": "Do or do not. There is no try. -Yoda",
-#    },
-# )
-
 st.markdown(
     "<h1 style='text-align: center;'>SprocketSorcerer\nThe Automaton Archduke of Articulation</h1>",
     unsafe_allow_html=True,
