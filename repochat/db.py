@@ -1,5 +1,6 @@
 import os
 import shutil
+import yaml
 from termcolor import colored
 from langchain_community.vectorstores import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -16,13 +17,44 @@ from .constants import (
 )
 
 
-def hf_embeddings():
+# ------------------------------------------------------------------------------
+# Embedding Chooser
+# ------------------------------------------------------------------------------
+
+
+def get_first_true_embedding():
     config = configuration()
-    embedding_model = config["models"]["embedding"]
-    os.environ["TOKENIZERS_PARALLELISM"] = "false"
-    return HuggingFaceEmbeddings(
-        model_name=embedding_model,
-    )
+    true_embeddings = [k for k, v in config["models"]["embedding"].items() if v["use"]]
+    if len(true_embeddings) == 0:
+        raise ValueError("No 'use: true' embeddings found")
+    elif len(true_embeddings) > 1:
+        raise ValueError("Multiple 'use: true' embeddings found")
+    else:
+        return (
+            true_embeddings[0],
+            config["models"]["embedding"][true_embeddings[0]]["model"],
+        )
+
+
+def embedding_chooser():
+    config = configuration()
+    try:
+        embedding_key, embedding_config = get_first_true_embedding()
+        # {'huggingface': 'sentence-transformers/all-mpnet-base-v2', 'use': True}
+        match embedding_key:
+            case "huggingface":
+                os.environ["TOKENIZERS_PARALLELISM"] = "false"
+                print(colored(f"Embedding: {embedding_config}", "yellow"))
+                return HuggingFaceEmbeddings(model_name=embedding_config)
+    except Exception as e:
+        print(colored(f"Error at embedding_chooser(): {e}", "cyan"))
+        # Handle the error appropriately, perhaps re-raise or return None
+        raise
+
+
+# ------------------------------------------------------------------------------
+# Database
+# ------------------------------------------------------------------------------
 
 
 def vector_db(embeddings, code):

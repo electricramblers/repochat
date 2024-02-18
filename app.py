@@ -1,7 +1,7 @@
 import streamlit as st
 from git.exc import GitCommandError
 from repochat.git import clone_repository, post_clone_actions
-from repochat.db import vector_db, hf_embeddings, load_to_db
+from repochat.db import vector_db, load_to_db, embedding_chooser
 from repochat.chain import response_chain
 from repochat.models import ai_agent
 from repochat.constants import (
@@ -56,7 +56,7 @@ def cached_post_clone_actions():
 @st.cache_data()
 def cached_create_database():
     vector_db(
-        hf_embeddings(),
+        embedding_chooser(),
         load_to_db(absolute_path_to_repo_directory()),
     )
     return True
@@ -114,7 +114,7 @@ def streamlit_function():
                     st.session_state["ingest_done"] = True
                     # Assuming the vector_db function returns the database which should be stored in chroma_db
                     st.session_state["chroma_db"] = vector_db(
-                        hf_embeddings(),
+                        embedding_chooser(),
                         load_to_db(absolute_path_to_repo_directory()),
                     )
                     display_temporary_message("Database created successfully")
@@ -155,7 +155,7 @@ def streamlit_function():
         if "chroma_db" not in st.session_state:
             with st.spinner("Database Operation. This may take some time..."):
                 st.session_state["chroma_db"] = vector_db(
-                    hf_embeddings(),
+                    embedding_chooser(),
                     load_to_db(st.session_state[absolute_path_to_repo_directory()]),
                 )
         if "qa" not in st.session_state:

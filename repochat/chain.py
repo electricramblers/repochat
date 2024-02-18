@@ -1,6 +1,7 @@
 from langchain.prompts import PromptTemplate
 from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
+from langchain import globals
 
 
 def prompt_format(system_prompt, instruction):
@@ -33,6 +34,7 @@ def custom_que_prompt():
 
 
 def response_chain(db, llm):
+    globals.set_verbose(True)
     retriever = db.as_retriever()
     search_kwargs = {
         "k": 5,
@@ -53,7 +55,7 @@ def response_chain(db, llm):
         retriever=retriever,
         memory=memory,
         chain_type="stuff",
-        verbose=True,
+        verbose=globals.get_verbose(),
         combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
         condense_question_prompt=question_prompt,
     )
