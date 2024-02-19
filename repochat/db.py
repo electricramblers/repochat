@@ -40,12 +40,14 @@ def embedding_chooser():
     config = configuration()
     try:
         embedding_key, embedding_config = get_first_true_embedding()
-        # {'huggingface': 'sentence-transformers/all-mpnet-base-v2', 'use': True}
         match embedding_key:
             case "huggingface":
                 os.environ["TOKENIZERS_PARALLELISM"] = "false"
                 print(colored(f"Embedding: {embedding_config}", "yellow"))
                 return HuggingFaceEmbeddings(model_name=embedding_config)
+        match embedding_key:
+            case "voyageai":
+                return
     except Exception as e:
         print(colored(f"Error at embedding_chooser(): {e}", "cyan"))
         # Handle the error appropriately, perhaps re-raise or return None

@@ -9,3 +9,4 @@ langchain-community
 pyyaml
 GitPython
 openai
+pinecone-client
