@@ -70,8 +70,37 @@ def display_temporary_message(message):
 
 
 # -------------------------------------------------------------------------------
+# CSS
+# -------------------------------------------------------------------------------
+
+
+def apply_custom_css():
+    st.markdown(
+        """
+        <style>
+        /* This affects all text within the Streamlit app */
+        html, body, [class*="st-"] {
+            font-size: 18px;
+        }
+        /* This specifically affects markdown text */
+        .markdown-text-container {
+            font-size: 18px;
+        }
+        /* This specifically affects chat messages */
+        .stChatMessage {
+            font-size: 18px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# -------------------------------------------------------------------------------
 # Streamlit tuff
 # -------------------------------------------------------------------------------
+
+apply_custom_css()
 
 
 def streamlit_function():
@@ -136,7 +165,7 @@ def streamlit_function():
     st.session_state["ready"] = True
 
     # -------------------------------------------------------------------------
-    # Load model into membory
+    # Load model into memory
     # -------------------------------------------------------------------------
 
     if "chroma_db" in st.session_state and "qa" not in st.session_state:

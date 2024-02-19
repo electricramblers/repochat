@@ -91,7 +91,7 @@ def load_to_db(repo_path):
             except Exception as e:
                 pass
 
-    code_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=128)
+    code_splitter = RecursiveCharacterTextSplitter(chunk_size=2048, chunk_overlap=256)
     code = code_splitter.split_documents(docs)
     print(colored(f"Documents create: {len(code)}", "cyan"))
     return code
