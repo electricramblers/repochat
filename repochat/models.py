@@ -6,7 +6,9 @@ import urllib.parse
 from langchain.callbacks.manager import CallbackManager, CallbackManagerForLLMRun
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain_community.chat_models import ChatOpenAI
-
+from langchain_community.embeddings.sentence_transformer import (
+    SentenceTransformerEmbeddings,
+)
 from langchain_community.llms import Ollama
 from termcolor import colored
 from typing import Any, List, Mapping, Optional
