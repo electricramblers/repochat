@@ -111,5 +111,7 @@ def model_chooser():
 
 def ai_agent():
     ai_model = model_chooser()
+    config = configuration()
+    callbackmanager = CallbackManager([StreamingStdOutCallbackHandler()])
     llm = ai_model
     return llm
