@@ -59,22 +59,9 @@ def embedding_chooser():
 # ------------------------------------------------------------------------------
 
 
-def vector_db(embeddings, code):
-    print(colored("Vector DB Initialized", "cyan"))
-    persist_directory = absolute_path_to_database_directory()
-    collection_name = "db_collection"
-    vec_db = Chroma.from_documents(
-        documents=code,
-        embedding=embeddings,
-        collection_name=collection_name,
-        persist_directory=persist_directory,
-    )
-    vec_db.persist()
-    return vec_db
-
-
-def load_to_db(repo_path):
-    print(colored("Load to DB Initiated", "cyan"))
+def load_code():
+    repo_path = absolute_path_to_repo_directory()
+    print(colored("line 64 in db.py - Loading Documents", "cyan"))
     docs = []
     for root, dirs, files in os.walk(repo_path):
         dirs[:] = [d for d in dirs if not d.startswith(".")]
@@ -92,8 +79,4 @@ def load_to_db(repo_path):
                     docs.extend(loader.load_and_split())
             except Exception as e:
                 pass
-
-    code_splitter = RecursiveCharacterTextSplitter(chunk_size=2048, chunk_overlap=256)
-    code = code_splitter.split_documents(docs)
-    print(colored(f"Documents create: {len(code)}", "cyan"))
     return code
