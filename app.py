@@ -2,7 +2,7 @@ import streamlit as st
 import time
 
 from repochat.git import clone_repository, post_clone_actions
-from repochat.db import vector_db, load_to_db, embedding_chooser
+from repochat.db import embedding_chooser
 from repochat.chain import response_chain
 from repochat.models import ai_agent
 
@@ -43,35 +43,16 @@ def reset_app():
 # -------------------------------------------------------------------------------
 
 
-# Cache the clone repository action
-@st.cache_data()
-def cached_clone_repository():
-    clone_repository()
-    return True
-
-
-# Cache the post clone actions
-@st.cache_data()
-def cached_post_clone_actions():
-    post_clone_actions()
-    return True
-
-
-# Cache the database creation
-@st.cache_data()
-def cached_create_database():
-    vector_db(
-        embedding_chooser(),
-        load_to_db(absolute_path_to_repo_directory()),
-    )
-    return True
-
-
 def display_temporary_message(message):
     placeholder = st.empty()
     placeholder.success(message)
     time.sleep(2)
     placeholder.empty()
+
+
+# -------------------------------------------------------------------------------
+# Custom CSS
+# -------------------------------------------------------------------------------
 
 
 def apply_custom_css():
@@ -96,6 +77,11 @@ def apply_custom_css():
     )
 
 
+# -------------------------------------------------------------------------------
+# Streamlit UI
+# -------------------------------------------------------------------------------
+
+
 def init():
     if "conversation" not in st.session_state:
         st.session_state.conversation = None
@@ -107,22 +93,41 @@ def init():
         st.session_state.embeddings = embedding_chooser()
 
 
+def handle_user_input(question):
+    response = st.session_state.conversation({"question": question})
+    st.session_state.chat_history = response["chat_history"]
+
+    for i, message in enumerate(st.session_state.chat_history):
+        if i % 2 == 0:
+            with st.chat_message("user"):
+                st.write(message.content)
+        else:
+            with st.chat_message("assistant"):
+                st.write(message.content)
+
+
 def streamlit_init():
     st.set_page_config(
         page_title="The Amazing Articulate Automaton of Assemblege", page_icon=":books:"
     )
     st.write(css, unsafe_allow_html=True)
 
-    st.header(":books: Förderrichtlinien-Assistent ")
-    user_input = st.chat_input("Foo")
+    st.header(":books: Hi there!")
+    user_input = st.chat_input("Describe this application.")
     if user_input:
         with st.spinner("Processing..."):
             handle_user_input(user_input)
 
     with st.sidebar:
-        st.subheader("funding guidlines")
-        pdf_docs = st.file_uploader("upload documents here", accept_multiple_files=True)
-        if st.button("upload"):
-            with st.spinner("analyzing documents"):
-                analyze_documents(pdf_docs)
+        st.subheader("Information")
     return
+
+
+def main():
+    init()
+    apply_custom_css()
+    return
+
+
+if __name__ == "__main__":
+    main()

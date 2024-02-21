@@ -3,6 +3,8 @@ from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from langchain import globals
 
+from .db import load_code, embedding_chooser
+
 
 def prompt_format(system_prompt, instruction):
     B_INST, E_INST = "[INST]", "[/INST]"
@@ -61,3 +63,47 @@ def response_chain(db, llm):
     )
 
     return qa
+
+
+def get_retriever(code):
+    store = InMemoryStore()
+    parent_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=2000, chunk_overlap=200, length_function=len
+    )
+    child_splitter = RecursiveCharacterTextSplitter(chunk_size=400, length_function=len)
+    vectorstore = Chroma(
+        collection_name="db_collection", embedding_function=embedding_chooser()
+    )
+    retriever = ParentDocumentRetriever(
+        vectorstore=vectorstore,
+        docstore=store,
+        child_splitter=child_splitter,
+        parent_splitter=parent_splitter,
+    )
+    retriever.add_documents(code, ids=None)
+    return retriever
+
+
+def get_prompt():
+    template = (
+        "Combine the chat history and follow up question into "
+        "a standalone question. Chat History: {chat_history}"
+        "Follow up question: {question}"
+    )
+    prompt = PromptTemplate.from_template(template)
+    question_generator_chain = LLMChain(llm=st.session_state.llm, prompt=prompt)
+
+
+def get_conversation(retriever):
+    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+    conversation_chain = ConversationalRetrievalChain.from_llm(
+        llm=st.session_state.llm, retriever=retriever, memory=memory
+    )
+    return conversation_chain
+
+
+def analyze_code(code):
+    # put to vectorstore
+    retriever = get_retriever(code)
+    # create conversation chain
+    st.session_state.conversation = get_conversation(retriever)
