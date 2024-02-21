@@ -1,11 +1,4 @@
 import streamlit as st
-<<<<<<< HEAD
-from git.exc import GitCommandError
-from repochat.git import clone_repository, post_clone_actions
-from repochat.db import vector_db, load_to_db, embedding_chooser
-from repochat.chain import response_chain
-from repochat.models import ai_agent
-=======
 import time
 import os
 import subprocess
