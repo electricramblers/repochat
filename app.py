@@ -10,6 +10,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from repochat.git import clone_repository, post_clone_actions
 from repochat.db import embedding_chooser, load_code
 from repochat.models import ai_agent, model_chooser
+from repochat.configmaker import create_yaml_file
 
 
 from repochat.chain import (
@@ -28,6 +29,15 @@ from repochat.constants import (
     repository_name_only,
     database_name_only,
 )
+
+# -------------------------------------------------------------------------------
+# Create a generic config.yaml if it is not there
+# -------------------------------------------------------------------------------
+
+
+def create_config_if_missing():
+    if not os.path.exists(absolute_path_to_config()):
+        create_yaml_file()
 
 
 # -------------------------------------------------------------------------------
@@ -227,6 +237,7 @@ def streamlit_init():
 
 
 def main():
+    create_config_if_missing()
     init()
     apply_custom_css()
     streamlit_init()
