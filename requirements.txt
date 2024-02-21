@@ -9,4 +9,8 @@ langchain-community
 pyyaml
 GitPython
 openai
-pinecone-client
+huggingface-hub
+pypdf
+huggingface-hub
+tiktoken
+textsplitter

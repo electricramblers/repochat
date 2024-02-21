@@ -1,6 +1,7 @@
 import os
 import shutil
 import yaml
+import streamlit as st
 from termcolor import colored
 from langchain_community.vectorstores import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -62,7 +63,7 @@ def embedding_chooser():
 def load_code():
     repo_path = absolute_path_to_repo_directory()
     print(colored("line 64 in db.py - Loading Documents", "cyan"))
-    docs = []
+    code = []
     for root, dirs, files in os.walk(repo_path):
         dirs[:] = [d for d in dirs if not d.startswith(".")]
         for filename in files:
@@ -76,7 +77,7 @@ def load_code():
                     loader = NotebookLoader(file_path)
                 else:
                     loader = TextLoader(file_path, encoding="utf-8")
-                    docs.extend(loader.load_and_split())
+                    code.extend(loader.load_and_split())
             except Exception as e:
                 pass
     return code

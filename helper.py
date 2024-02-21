@@ -10,7 +10,7 @@ from repochat.constants import (
 )
 
 # List of files to include
-files = ["repochat/testing.py"]
+files = ["app.py", "repochat/db.py", "repochat/chain.py", "repochat/models.py"]
 
 ADDED_TEXT = """The code from multiple files is present in this prompt.  Each file name looks like "# <something>.py"
 

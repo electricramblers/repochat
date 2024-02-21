@@ -1,9 +1,22 @@
 from langchain.prompts import PromptTemplate
 from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
+from langchain.storage import InMemoryStore
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.vectorstores import Chroma
+from langchain.retrievers import ParentDocumentRetriever
 from langchain import globals
-
+import streamlit as st
 from .db import load_code, embedding_chooser
+
+from .constants import (
+    absolute_path_to_config,
+    configuration,
+    absolute_path_to_repo_directory,
+    absolute_path_to_database_directory,
+    repository_name_only,
+    database_name_only,
+)
 
 
 def prompt_format(system_prompt, instruction):
@@ -65,6 +78,11 @@ def response_chain(db, llm):
     return qa
 
 
+# -------------------------------------------------------------------------------
+# New stuff below
+# -------------------------------------------------------------------------------
+
+
 def get_retriever(code):
     store = InMemoryStore()
     parent_splitter = RecursiveCharacterTextSplitter(
@@ -102,7 +120,7 @@ def get_conversation(retriever):
     return conversation_chain
 
 
-def analyze_code(code):
+def analyze_code(code):  # removed the code argument
     # put to vectorstore
     retriever = get_retriever(code)
     # create conversation chain

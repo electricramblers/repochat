@@ -93,25 +93,25 @@ def model_chooser():
         ai_model = config["models"]["ollama"]["local"]
         model_to_use = Ollama(model=ai_model)
         print(colored("Local Ollama Success", "cyan"))
-        return model_to_use
+        return model_to_use, "local"
     elif remote_ollama and escalate:
         ai_model = config["models"]["ollama"]["remote"]
         remote_url = config["models"]["ollama"]["base_url"]
         model_to_use = Ollama(model=ai_model, base_url=remote_url)
         print(colored("Remote Ollama: Success", "cyan"))
-        return model_to_use
+        return model_to_use, "remote"
     elif openrouter:
         ai_model = config["models"]["openrouter"]["low"]
         api_key = config["keys"]["openrouter"]
         model_to_use = OpenRouterLLM(model_name=ai_model, openai_api_key=api_key)
         print(colored("Openrouter: Success", "cyan"))
-        return model_to_use
+        return model_to_use, "openrouter"
     else:
         print(colored("Error. No AI Model Available.", "red"))
         exit(1)
 
 
 def ai_agent():
-    ai_model = model_chooser()
+    ai_model, model_type = model_chooser()
     llm = ai_model
-    return llm
+    return llm, model_type
