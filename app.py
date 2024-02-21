@@ -28,6 +28,7 @@ from repochat.constants import (
     absolute_path_to_database_directory,
     repository_name_only,
     database_name_only,
+    get_current_time_date,
 )
 
 # -------------------------------------------------------------------------------
@@ -45,10 +46,15 @@ def create_config_if_missing():
 # -------------------------------------------------------------------------------
 
 
-def get_current_time_date():
-    from datetime import datetime
+def chat_current_time_date(chat_history):
+    # Get the current time and date
+    current_time_date = get_current_time_date()
 
-    return datetime.now().strftime("%H:%M, %d %B, %Y")
+    # Add the current time and date to the chat history
+    chat_history.append(current_time_date)
+
+    # Return the updated chat history
+    return chat_history
 
 
 def sidebar_model():
@@ -120,7 +126,7 @@ def init():
     if "conversation" not in st.session_state:
         st.session_state.conversation = {}
     if "chat_history" not in st.session_state:
-        st.session_state.chat_history = None
+        st.session_state.chat_history = []  # Initialize chat_history as an empty list
     if "llm" not in st.session_state or "model_type" not in st.session_state:
         st.session_state.llm, st.session_state.model_type = ai_agent()
     if "embeddings" not in st.session_state:
@@ -134,17 +140,32 @@ def init():
 # -------------------------------------------------------------------------------
 # Handle all user input
 # -------------------------------------------------------------------------------
-def handle_user_input(user_input):
-    response = st.session_state.conversation({"question": user_input})
-    st.session_state.chat_history = response["chat_history"]
 
+
+def handle_user_input(user_input):
+    # Get the current time and date
+    current_time_and_date = f" The current time and date is: {get_current_time_date()}"
+
+    # Append the current time and date to the user input for processing
+    expanded_user_input = user_input + current_time_and_date
+
+    # Send the modified input to the LLM
+    response = st.session_state.conversation({"question": expanded_user_input})
+
+    # Append only the original user input to the chat history
+    st.session_state.chat_history.append(user_input)
+
+    # Append the assistant's response to the chat history
+    st.session_state.chat_history.append(response["answer"])
+
+    # Display the chat history
     for i, message in enumerate(st.session_state.chat_history):
         if i % 2 == 0:
             with st.chat_message("user"):
-                st.write(message.content)
+                st.write(message)
         else:
             with st.chat_message("assistant"):
-                st.write(message.content)
+                st.write(message)
 
 
 # -------------------------------------------------------------------------------

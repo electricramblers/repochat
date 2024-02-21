@@ -4,9 +4,6 @@ import re
 from termcolor import colored
 
 
-REFRESH_MESSAGE = "🔄 The repository and database have been successfully deleted. The application will restart now."
-
-
 def get_current_time_date():
     from datetime import datetime
 

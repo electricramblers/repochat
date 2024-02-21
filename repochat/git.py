@@ -19,11 +19,11 @@ from .constants import (
     absolute_path_to_database_directory,
     repository_name_only,
     database_name_only,
+    get_current_time_date,
 )
 
 
 def post_clone_actions():
-    print(colored("Running post-clone actions", "magenta"))
     pruner()
 
 
