@@ -18,6 +18,10 @@ langchain-community = "^0.0.19"
 pyyaml = "^6.0.1"
 gitpython = "^3.1.41"
 openai = "^1.12.0"
+huggingface-hub = "^0.20.3"
+htmltemplate = "^2.2.1"
+pypdf = "^4.0.2"
+textsplitter = "^1.0.3"
 
 
 [build-system]
