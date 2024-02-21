@@ -13,7 +13,7 @@ from repochat.constants import (
 
 def create_yaml_file():
     filename = absolute_path_to_config()
-    if not os.path.exists(absolute_path_to_config()):
+    if not os.path.exists(filename):
         # Define the data structure for the YAML content
         data = {
             "blocked_file_paths": ["example/path/1", "example/path/2"],
