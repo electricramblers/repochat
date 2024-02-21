@@ -16,6 +16,7 @@ from .constants import (
     absolute_path_to_database_directory,
     repository_name_only,
     database_name_only,
+    get_current_time_date,
 )
 
 
@@ -105,7 +106,7 @@ def get_retriever(code):
 def get_prompt():
     template = (
         "Combine the chat history and follow up question into "
-        "a standalone question. Chat History: {chat_history}"
+        f"a standalone question. The date and time is {get_current_time_date()}. Chat History: {chat_history}"
         "Follow up question: {question}"
     )
     prompt = PromptTemplate.from_template(template)

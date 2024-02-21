@@ -45,6 +45,12 @@ def create_config_if_missing():
 # -------------------------------------------------------------------------------
 
 
+def get_current_time_date():
+    from datetime import datetime
+
+    return datetime.now().strftime("%H:%M, %d %B, %Y")
+
+
 def sidebar_model():
     model_type = st.session_state.model_type
     if model_type == "local":
