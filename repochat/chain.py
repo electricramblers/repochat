@@ -5,6 +5,8 @@ from langchain.storage import InMemoryStore
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain.retrievers import ParentDocumentRetriever
+from langchain.callbacks.manager import CallbackManager
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain import globals
 import streamlit as st
 from .db import load_code, embedding_chooser
@@ -49,45 +51,10 @@ def custom_que_prompt():
     return prompt_format(que_system_prompt, instr_prompt)
 
 
-def response_chain(db, llm):
-    globals.set_verbose(True)
-    retriever = db.as_retriever()
-    search_kwargs = {
-        "k": 3,
-    }
-
-    retriever.search_kwargs.update(search_kwargs)
-
-    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-
-    model_template = model_prompt()
-    QA_CHAIN_PROMPT = PromptTemplate(
-        input_variables=["context", "question"], template=model_template
-    )
-    question_prompt = PromptTemplate.from_template(custom_que_prompt())
-
-    qa = ConversationalRetrievalChain.from_llm(
-        llm=llm,
-        retriever=retriever,
-        memory=memory,
-        chain_type="stuff",
-        verbose=globals.get_verbose(),
-        combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
-        condense_question_prompt=question_prompt,
-    )
-
-    return qa
-
-
-# -------------------------------------------------------------------------------
-# New stuff below
-# -------------------------------------------------------------------------------
-
-
 def get_retriever(code):
     store = InMemoryStore()
     parent_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=2000, chunk_overlap=200, length_function=len
+        chunk_size=2048, chunk_overlap=256, length_function=len
     )
     child_splitter = RecursiveCharacterTextSplitter(chunk_size=400, length_function=len)
     vectorstore = Chroma(
@@ -104,19 +71,41 @@ def get_retriever(code):
 
 
 def get_prompt():
-    template = (
-        "Combine the chat history and follow up question into "
-        f"a standalone question. The date and time is {get_current_time_date()}. Chat History: {chat_history}"
-        "Follow up question: {question}"
+    globals.set_verbose(True)
+    model_template = model_prompt()
+    QA_CHAIN_PROMPT = PromptTemplate(
+        input_variables=["context", "question"], template=model_template
     )
-    prompt = PromptTemplate.from_template(template)
-    question_generator_chain = LLMChain(llm=st.session_state.llm, prompt=prompt)
+    question_prompt = PromptTemplate.from_template(custom_que_prompt())
+    question_generator_chain = ConversationalRetrievalChain.from_llm(
+        llm=llm,
+        retriever=retriever,
+        memory=memory,
+        chain_type="stuff",
+        verbose=globals.get_verbose(),
+        combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
+        condense_question_prompt=question_prompt,
+    )
+
+
+# def get_prompt():
+#    template = (
+#        "Combine the chat history and follow up question into "
+#        f"a standalone question. Chat History: {chat_history}"
+#        "Follow up question: {question}"
+#    )
+#    prompt = PromptTemplate.from_template(template)
+#    question_generator_chain = LLMChain(llm=st.session_state.llm, prompt=prompt)
 
 
 def get_conversation(retriever):
+    globals.set_verbose(True)
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
     conversation_chain = ConversationalRetrievalChain.from_llm(
-        llm=st.session_state.llm, retriever=retriever, memory=memory
+        llm=st.session_state.llm,
+        retriever=retriever,
+        memory=memory,
+        verbose=globals.get_verbose(),
     )
     return conversation_chain
 

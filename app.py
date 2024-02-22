@@ -14,7 +14,7 @@ from repochat.configmaker import create_yaml_file
 
 
 from repochat.chain import (
-    response_chain,
+    get_prompt,
     get_retriever,
     get_retriever,
     get_conversation,

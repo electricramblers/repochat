@@ -45,13 +45,12 @@ def embedding_chooser():
         match embedding_key:
             case "huggingface":
                 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-                print(colored(f"Embedding: {embedding_config}", "yellow"))
                 return HuggingFaceEmbeddings(model_name=embedding_config)
         match embedding_key:
             case "voyageai":
                 return
     except Exception as e:
-        print(colored(f"Error at embedding_chooser(): {e}", "cyan"))
+        print(colored(f"Error at embedding_chooser(): {e}", "red"))
         # Handle the error appropriately, perhaps re-raise or return None
         raise
 
@@ -63,7 +62,6 @@ def embedding_chooser():
 
 def load_code():
     repo_path = absolute_path_to_repo_directory()
-    print(colored("line 64 in db.py - Loading Documents", "cyan"))
     code = []
     for root, dirs, files in os.walk(repo_path):
         dirs[:] = [d for d in dirs if not d.startswith(".")]
