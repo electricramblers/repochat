@@ -92,16 +92,6 @@ def get_prompt():
     )
 
 
-# def get_prompt():
-#    template = (
-#        "Combine the chat history and follow up question into "
-#        f"a standalone question. Chat History: {chat_history}"
-#        "Follow up question: {question}"
-#    )
-#    prompt = PromptTemplate.from_template(template)
-#    question_generator_chain = LLMChain(llm=st.session_state.llm, prompt=prompt)
-
-
 def get_conversation(retriever):
     globals.set_verbose(True)
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)

@@ -27,6 +27,8 @@ def create_yaml_file():
                 ".DS_Store",
                 "example.sublime-project",
                 "example.sublime-workpace",
+                "configmaker.py",
+                "dev.py",
             ],
             "github": {
                 "url": "< your github url >",

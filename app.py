@@ -305,9 +305,10 @@ def streamlit_init():
         sidebar_model()
         st.sidebar.markdown(f"# Repository:")
         st.sidebar.write(f"{github_url}")
-        st.sidebar.markdown(
+        st.sidebar.caption(
             f"<strong>Branch:</strong> {github_branch}", unsafe_allow_html=True
         )
+        st.divider()
         st.sidebar.button(
             "Edit Config", on_click=lambda: open_config_file(absolute_path_to_config())
         )
