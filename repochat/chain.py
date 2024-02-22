@@ -121,7 +121,7 @@ def get_conversation(retriever):
     return conversation_chain
 
 
-def analyze_code(code):  # removed the code argument
+def analyze_code(code):
     # put to vectorstore
     retriever = get_retriever(code)
     # create conversation chain

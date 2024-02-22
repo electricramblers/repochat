@@ -47,13 +47,8 @@ def create_config_if_missing():
 
 
 def chat_current_time_date(chat_history):
-    # Get the current time and date
     current_time_date = get_current_time_date()
-
-    # Add the current time and date to the chat history
     chat_history.append(current_time_date)
-
-    # Return the updated chat history
     return chat_history
 
 
