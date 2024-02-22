@@ -62,7 +62,8 @@ def get_retriever(code):
     )
     child_splitter = RecursiveCharacterTextSplitter(chunk_size=400, length_function=len)
     vectorstore = Chroma(
-        collection_name="db_collection", embedding_function=embedding_chooser()
+        collection_name="db_collection",
+        embedding_function=embedding_chooser(),
     )
     retriever = ParentDocumentRetriever(
         vectorstore=vectorstore,

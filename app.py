@@ -314,6 +314,7 @@ def streamlit_init():
         )
         if configuration()["developer"]["debug"]:
             st.sidebar.button("Meta Helper", on_click=lambda: run_helper())
+            st.sidebar.divider()
     return
 
 
