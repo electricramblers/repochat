@@ -17,6 +17,7 @@ def create_yaml_file():
     if not os.path.exists(filename):
         # Define the data structure for the YAML content
         data = {
+            "developer": {"debug": False},
             "blocked_file_paths": ["example/path/1", "example/path/2"],
             "allowed_file_extensions": [".py", ".html", ".css", ".js", ".md"],
             "blocked_files": [

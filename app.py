@@ -3,6 +3,7 @@ import time
 import os
 import subprocess
 import sys
+import yaml
 from git.exc import GitCommandError
 from termcolor import colored
 from langchain.storage import InMemoryStore
@@ -80,6 +81,23 @@ def sidebar_model():
 
 
 def open_config_file(path):
+    try:
+        if sys.platform.startswith("darwin"):  # macOS
+            subprocess.run(["open", path], check=True)
+        elif sys.platform.startswith("linux"):
+            subprocess.run(["xdg-open", path], check=True)
+        elif sys.platform.startswith("win32") or sys.platform.startswith("cygwin"):
+            os.startfile(path)
+        else:
+            raise OSError("Unsupported operating system")
+    except Exception as e:
+        print(f"Failed to open the file: {e}")
+
+
+def run_helper():
+    os.chdir(os.path.dirname(__file__))
+    subprocess.call(["python", "helper.py"])
+    path = "prompt.txt"
     try:
         if sys.platform.startswith("darwin"):  # macOS
             subprocess.run(["open", path], check=True)
@@ -260,7 +278,7 @@ def streamlit_init():
 
     if not st.session_state.get("analyze_code"):
         try:
-            with st.spinner("Attempting to Analyze Code."):
+            with st.spinner("Database Operation. This may take some time..."):
                 if analyze_code(load_code()):
                     print(colored(f"line 166 app.py - code is {code}", "white"))
                     st.session_state["analyze_code"] = True
@@ -293,6 +311,8 @@ def streamlit_init():
         st.sidebar.button(
             "Edit Config", on_click=lambda: open_config_file(absolute_path_to_config())
         )
+        if configuration()["developer"]["debug"]:
+            st.sidebar.button("Meta Helper", on_click=lambda: run_helper())
     return
 
 
