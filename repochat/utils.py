@@ -25,16 +25,17 @@ def pruner():
 
     print(
         colored(
-            f"Deleting files based on blocked file paths: {blocked_file_paths}", "cyan"
+            f"Deleting files based on blocked file paths: {blocked_file_paths}",
+            "light_cyan",
         )
     )
     for path in blocked_file_paths:
         file_path = os.path.join(parent_directory, path)
         if os.path.exists(file_path):
-            print(colored(f"Deleting {file_path}", "yellow"))
+            print(colored(f"Deleting {file_path}", "light_yellow"))
             shutil.rmtree(file_path)
         else:
-            print(colored(f"{file_path} does not exist", "blue"))
+            print(colored(f"{file_path} does not exist", "light_cyan"))
 
     # Get all possible file extensions
     all_extensions = set(
@@ -69,15 +70,15 @@ def pruner():
                 files_to_keep.append(file)
         files_to_delete = set(files_to_delete) - set(files_to_keep)
         for file in files_to_delete:
-            print(colored(f"Deleting {file}", "yellow"))
+            print(colored(f"Deleting {file}", "light_magenta"))
             os.remove(os.path.join(directory, file))
 
     delete_disallowed_files()
-    print(colored(f"Deleting blocked files: {blocked_files}", "cyan"))
+    print(colored(f"Deleting blocked files: {blocked_files}", "light_yellow"))
     for file in blocked_files:
         file_path = os.path.join(parent_directory, file)
         if os.path.exists(file_path):
-            print(colored(f"Deleting {file_path}", "yellow"))
+            print(colored(f"Deleting {file_path}", "light_magenta"))
             os.remove(file_path)
         else:
-            print(colored(f"{file_path} does not exist", "blue"))
+            print(colored(f"{file_path} does not exist", "light_cyan"))
