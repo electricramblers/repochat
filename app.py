@@ -46,6 +46,21 @@ def create_config_if_missing():
 # -------------------------------------------------------------------------------
 
 
+def extract_model_name():
+    result = ai_agent()
+    # Iterate through each item in the tuple
+    for item in result:
+        # Check if the item is an instance of a class with a __dict__ attribute
+        if hasattr(item, "__dict__"):
+            # Iterate through the dictionary of the item
+            for key, value in item.__dict__.items():
+                # Check if the key is 'model_name'
+                if key == "model_name":
+                    # Return the value associated with 'model_name'
+                    return value
+    return None
+
+
 def chat_current_time_date(chat_history):
     current_time_date = get_current_time_date()
     chat_history.append(current_time_date)
@@ -53,13 +68,15 @@ def chat_current_time_date(chat_history):
 
 
 def sidebar_model():
+    model_in_use = extract_model_name()
     model_type = st.session_state.model_type
     if model_type == "local":
         st.sidebar.success("Local AI")
     elif model_type == "remote":
         st.sidebar.warning("Network AI")
     elif model_type == "openrouter":
-        st.sidebar.error("OpenRouter")
+        st.sidebar.error(f"OpenRouter")
+        st.write(model_in_use)
 
 
 def open_config_file(path):
@@ -108,6 +125,32 @@ def apply_custom_css():
     )
 
 
+def sidebar_custom_css():
+    st.markdown(
+        """
+        <style>
+        /* This affects all text within the Streamlit app */
+        html, body, [class*="st-"] {
+            font-size: 18px;
+        }
+        /* This specifically affects chat messages */
+        .stChatMessage {
+            font-size: 18px;
+        }
+        /* This specifically affects the sidebar */
+        .stSidebar, .stSidebar-content {
+            font-size: 10px;
+        }
+        /* This specifically affects markdown text */
+        .markdown-text-container {
+            font-size: 18px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 # -------------------------------------------------------------------------------
 # Functions that are needed to initialize streamlit.
 # -------------------------------------------------------------------------------
@@ -115,7 +158,7 @@ def init():
     if "clone_repository" not in st.session_state:
         st.session_state.clone_repository = None
     if "post_clone_actions" not in st.session_state:
-        st.session_state.post_clone_actions = None
+        st.session_state.post_clone_actions = False
     if "analyze_code" not in st.session_state:
         st.session_state.analyze_code = None
     if "conversation" not in st.session_state:
@@ -261,7 +304,7 @@ def streamlit_init():
 def main():
     create_config_if_missing()
     init()
-    apply_custom_css()
+    sidebar_custom_css()
     streamlit_init()
     return
 

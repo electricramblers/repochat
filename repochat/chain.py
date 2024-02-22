@@ -7,8 +7,11 @@ from langchain_community.vectorstores import Chroma
 from langchain.retrievers import ParentDocumentRetriever
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain.storage._lc_store import create_kv_docstore
 from langchain import globals
 import streamlit as st
+
+
 from .db import load_code, embedding_chooser
 
 from .constants import (
@@ -52,6 +55,7 @@ def custom_que_prompt():
 
 
 def get_retriever(code):
+    # store = create_kv_docstore(absolute_path_to_database_directory())
     store = InMemoryStore()
     parent_splitter = RecursiveCharacterTextSplitter(
         chunk_size=2048, chunk_overlap=256, length_function=len
