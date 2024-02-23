@@ -3,6 +3,7 @@ from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain_community.vectorstores import Chroma
+from langchain.callbacks.manager import CallbackManagerForRetrieverRun
 
 # from typings import List
 from pydantic import BaseModel, Field
@@ -26,6 +27,24 @@ from .constants import (
     database_name_only,
     get_current_time_date,
 )
+
+# -------------------------------------------------------------------------------
+# Parsing stuff
+# -------------------------------------------------------------------------------
+
+
+class LineList(BaseModel):
+    # "lines" is the key (attribute name) of the parsed output
+    lines: List[str] = Field(description="Lines of text")
+
+
+class LineListOutputParser(PydanticOutputParser):
+    def __init__(self) -> None:
+        super().__init__(pydantic_object=LineList)
+
+    def parse(self, text: str) -> LineList:
+        lines = text.strip().split("\n")
+        return LineList(lines=lines)
 
 
 # -------------------------------------------------------------------------------
