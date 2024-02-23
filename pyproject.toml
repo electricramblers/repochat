@@ -9,7 +9,6 @@ readme = "README.md"
 python = "^3.11"
 requests = "^2.31.0"
 streamlit = "^1.31.1"
-langchain = "^0.1.6"
 chromadb = "^0.4.22"
 tiktoken = "^0.6.0"
 sentence-transformers = "^2.3.1"
@@ -22,6 +21,7 @@ huggingface-hub = "^0.20.3"
 htmltemplate = "^2.2.1"
 pypdf = "^4.0.2"
 textsplitter = "^1.0.3"
+langchain = "0.1.5"
 
 
 [build-system]

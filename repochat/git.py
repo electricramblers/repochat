@@ -50,15 +50,15 @@ def clone_repository():
 
     try:
         shutil.rmtree(repo_dir)
-        print(colored("Removing existing repository.", "cyan"))
-    except:
-        pass
+        time.sleep(2)
+    except Exception as e:
+        print(colored(f"Error removing repository directory: {e}", "red"))
 
     try:
         shutil.rmtree(absolute_path_to_database_directory())
-        print(colored("Removing existing database directory.", "cyan"))
-    except:
-        pass
+        time.sleep(2)
+    except Exception as e:
+        print(colored(f"Error removing the database directory: {e}", "red"))
 
     # Test if the repository is public or private
     response = requests.head(git_url, allow_redirects=True)
@@ -75,7 +75,6 @@ def clone_repository():
     try:
         repo = Repo.clone_from(git_url, repo_dir)
         repo.git.checkout(branch)
-        print(colored(f"Cloned branch {branch}", "cyan"))
         time.sleep(1)
         return True
     except Exception as e:

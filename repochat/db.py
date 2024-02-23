@@ -61,7 +61,7 @@ def embedding_chooser():
 
 
 def vector_db():
-    print(colored("Vector DB Initialized", "cyan"))
+    database_path = absolute_path_to_database_directory()
     code = load_code()
     embeddings = embedding_chooser()
     db_name_only = database_name_only()

@@ -18,6 +18,7 @@ files = [
     "repochat/utils.py",
     "repochat/constants.py",
     "repochat/git.py",
+    "repochat/multiQueryChain.py",
 ]
 
 ADDED_TEXT = """The code from multiple files is present in this prompt.  Each file name looks like "# <something>.py"

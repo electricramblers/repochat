@@ -1,6 +1,6 @@
 requests
 streamlit
-langchain
+langchain==0.1.5
 chromadb
 tiktoken
 sentence-transformers

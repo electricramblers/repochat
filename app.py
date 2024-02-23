@@ -3,18 +3,24 @@ import time
 import os
 import subprocess
 import sys
+import json
 import yaml
 from git.exc import GitCommandError
 from termcolor import colored
 from langchain.storage import InMemoryStore
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+
 from repochat.git import clone_repository, post_clone_actions
-from repochat.db import embedding_chooser, load_code
+from repochat.db import (
+    embedding_chooser,
+    get_first_true_embedding,
+    load_code,
+    vector_db,
+)
 from repochat.models import ai_agent, model_chooser
 from repochat.configmaker import create_yaml_file
-
-
 from repochat.chain import parentChildChain
+from repochat.multiQueryChain import multiQueryChainClass
 
 from repochat.constants import (
     absolute_path_to_config,
@@ -39,6 +45,14 @@ def create_config_if_missing():
 # -------------------------------------------------------------------------------
 # Streamlit Addon Functions
 # -------------------------------------------------------------------------------
+
+
+def is_json(myjson):
+    try:
+        json_object = json.loads(myjson)
+    except ValueError as e:
+        return False
+    return True
 
 
 def extract_model_name():
@@ -171,6 +185,8 @@ def init():
         st.session_state.clone_repository = None
     if "post_clone_actions" not in st.session_state:
         st.session_state.post_clone_actions = False
+    if "vector_database" not in st.session_state:
+        st.session_state.vector_database = False
     if "analyze_code" not in st.session_state:
         st.session_state.analyze_code = None
     if "conversation" not in st.session_state:
@@ -197,10 +213,20 @@ def handle_user_input(user_input):
     current_time_and_date = f" The current time and date is: {get_current_time_date()}"
 
     # Append the current time and date to the user input for processing
-    expanded_user_input = user_input + current_time_and_date
+    expanded_user_input = user_input  # + current_time_and_date
 
     # Send the modified input to the LLM
     response = st.session_state.conversation({"question": expanded_user_input})
+
+    # Debug print
+    if configuration()["developer"]["debug"]:
+        print(
+            colored(
+                f"\n\nline 225 app.py - expanded_user_input: {expanded_user_input}\n\n",
+                "light_magenta",
+            )
+        )
+        print(colored(f"line 229 app.py - response: {response}\n\n", "light_magenta"))
 
     # Append only the original user input to the chat history
     st.session_state.chat_history.append(user_input)
@@ -267,21 +293,46 @@ def streamlit_init():
             st.error(f"Unexpected error: {str(e)}")
 
     # -------------------------------------------------------------------------------
+    # Create the vector database
+    # -------------------------------------------------------------------------------
+    if not st.session_state.get("vector_database"):
+        try:
+            with st.spinner("Attempting to create the database."):
+                if vector_db():
+                    st.session_state["vector_database"] = True
+                    display_temporary_message("Database created successfully.")
+        except GitCommandError as e:
+            st.error(f"Error creating database: {str(e)}")
+        except Exception as e:
+            st.error(f"line 298 app.py -Unexpected error: {str(e)}")
+
+    # -------------------------------------------------------------------------------
     # Analyze the code
     # -------------------------------------------------------------------------------
-
     if not st.session_state.get("analyze_code"):
         try:
             with st.spinner("Database Operation. This may take some time..."):
-                chain_instance = parentChildChain()
-                if chain_instance.analyze_code(load_code()):
-                    print(colored(f"line 277 app.py - code is {code}", "white"))
+                chain_instance = multiQueryChainClass()
+                if chain_instance.analyze_code():
                     st.session_state["analyze_code"] = True
                     display_temporary_message("Code Analyzed Successfully")
         except GitCommandError as e:
             st.error(f"Error analyzing code repository: {str(e)}")
         except Exception as e:
-            st.error(f"line 283 in app.py - Unexpected error: {str(e)}")
+            st.error(f"line 286 in app.py - Unexpected error: {str(e)}")
+
+    # if not st.session_state.get("analyze_code"):
+    #    try:
+    #        with st.spinner("Database Operation. This may take some time..."):
+    #            chain_instance = parentChildChain()
+    #            if chain_instance.analyze_code(load_code()):
+    #                print(colored(f"line 277 app.py - code is {code}", "white"))
+    #                st.session_state["analyze_code"] = True
+    #                display_temporary_message("Code Analyzed Successfully")
+    #    except GitCommandError as e:
+    #        st.error(f"Error analyzing code repository: {str(e)}")
+    #    except Exception as e:
+    #        st.error(f"line 283 in app.py - Unexpected error: {str(e)}")
 
     # -------------------------------------------------------------------------------
     # User Input
