@@ -60,18 +60,24 @@ def embedding_chooser():
 # ------------------------------------------------------------------------------
 
 
-def vector_db(embeddings, code):
+def vector_db():
     print(colored("Vector DB Initialized", "cyan"))
+    code = load_code()
+    embeddings = embedding_chooser()
+    db_name_only = database_name_only()
     persist_directory = absolute_path_to_database_directory()
-    collection_name = "db_collection"
-    vec_db = Chroma.from_documents(
+    collection_name = f"db_{db_name_only}"
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=2048, chunk_overlap=256, length_function=len
+    )
+    vector_db = Chroma.from_documents(
         documents=code,
         embedding=embeddings,
         collection_name=collection_name,
         persist_directory=persist_directory,
     )
-    vec_db.persist()
-    return vec_db
+    vector_db.persist()
+    return vector_db
 
 
 def load_code():
