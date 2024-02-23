@@ -60,6 +60,20 @@ def embedding_chooser():
 # ------------------------------------------------------------------------------
 
 
+def vector_db(embeddings, code):
+    print(colored("Vector DB Initialized", "cyan"))
+    persist_directory = absolute_path_to_database_directory()
+    collection_name = "db_collection"
+    vec_db = Chroma.from_documents(
+        documents=code,
+        embedding=embeddings,
+        collection_name=collection_name,
+        persist_directory=persist_directory,
+    )
+    vec_db.persist()
+    return vec_db
+
+
 def load_code():
     repo_path = absolute_path_to_repo_directory()
     code = []
