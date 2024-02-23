@@ -1,7 +1,7 @@
 from langchain.prompts import PromptTemplate
 from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
-from langchain.retrievers import MultiQueryRetriever
+from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain_community.vectorstores import Chroma
 
 # from typings import List
@@ -79,11 +79,13 @@ class multiQuery:
             retriever=retriever,
             memory=memory,
         )
-        # Debug print to check if the retriever is fetching any documents
-        print(f"Retrieved documents: {retriever.retrieve()}")
-        # Debug print to check if the documents have any content
-        print(f"Document content: {retriever.retrieve().page_content}")
         return conversation_chain
+
+    def get_retriever(self, code):
+        retriever = MultiQueryRetriever.from_llm(
+            retriever=self.db.as_retriever(), llm=self.llm
+        )
+        return retriever
 
     def get_rag(self):
         rag_chain = (
@@ -98,6 +100,6 @@ class multiQuery:
         )
         return rag_chain
 
-    def analyze_code(self, code=None):
-        retriever = self.retriever
+    def analyze_code(self, code):
+        retriever = self.get_retriever(code)
         st.session_state.conversation = self.get_conversation(retriever)

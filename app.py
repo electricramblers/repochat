@@ -311,7 +311,7 @@ def streamlit_init():
         except GitCommandError as e:
             st.error(f"Error creating database: {str(e)}")
         except Exception as e:
-            st.error(f"line 298 app.py -Unexpected error: {str(e)}")
+            st.error(f"line 314 app.py -Unexpected error: {str(e)}")
 
     # -------------------------------------------------------------------------------
     # Analyze the code
@@ -320,13 +320,13 @@ def streamlit_init():
         try:
             with st.spinner("Database Operation. This may take some time..."):
                 mq = multiQuery()
-                if mq.analyze_code():
+                if mq.analyze_code(load_code()):
                     st.session_state["analyze_code"] = True
                     display_temporary_message("Code Analyzed Successfully")
         except GitCommandError as e:
             st.error(f"Error analyzing code repository: {str(e)}")
         except Exception as e:
-            st.error(f"line 286 in app.py - Unexpected error: {str(e)}")
+            st.error(f"line 329 in app.py - Unexpected error: {str(e)}")
 
     # -------------------------------------------------------------------------------
     # User Input
