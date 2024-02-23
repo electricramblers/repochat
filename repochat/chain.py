@@ -5,12 +5,20 @@ from langchain.storage import InMemoryStore
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain.retrievers import ParentDocumentRetriever
+from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.storage._lc_store import create_kv_docstore
 from langchain import globals
+from typing import List
+from pydantic import BaseModel, Field
+from langchain.chains import LLMChain
+from langchain.output_parsers import PydanticOutputParser
+import logging
+
 import streamlit as st
 
+from .models import ai_agent
 
 from .db import load_code, embedding_chooser
 
@@ -25,88 +33,98 @@ from .constants import (
 )
 
 
-def prompt_format(system_prompt, instruction):
-    B_INST, E_INST = "[INST]", "[/INST]"
-    B_SYS, E_SYS = "<SYS>>\n", "\n<</SYS>>\n\n"
-    SYSTEM_PROMPT = B_SYS + system_prompt + E_SYS
-    prompt_template = B_INST + SYSTEM_PROMPT + instruction + E_INST
-    return prompt_template
+# -------------------------------------------------------------------------------
+# Useful for very specific results.
+# -------------------------------------------------------------------------------
 
 
-def model_prompt():
-    system_prompt = """You are a helpful assistant, you have good knowledge in coding and you will use the provided context to answer user questions with detailed explanations.
-    Read the given context before answering questions and think step by step. If you can not answer a user question based on the provided context, inform the user. Do not use any other information for answering user"""
-    instruction = """
-    Context: {context}
-    User: {question}"""
-    return prompt_format(system_prompt, instruction)
+class parentChildChain:
+    def __init__(self):
+        pass
 
+    def prompt_format(self, system_prompt, instruction):
+        B_INST, E_INST = "[INST]", "[/INST]"
+        B_SYS, E_SYS = "<SYS>>\n", "\n<</SYS>>\n\n"
+        SYSTEM_PROMPT = B_SYS + system_prompt + E_SYS
+        prompt_template = B_INST + SYSTEM_PROMPT + instruction + E_INST
+        return prompt_template
 
-def custom_que_prompt():
-    que_system_prompt = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question and give only the standalone question as output in the tags <question> and </question>.
-    """
+    def model_prompt(self):
+        system_prompt = """You are a helpful assistant, you have good knowledge in coding and you will use the provided context to answer user questions with detailed explanations.
+        Read the given context before answering questions and think step by step. If you can not answer a user question based on the provided context, inform the user. Do not use any other information for answering user"""
+        instruction = """
+        Context: {context}
+        User: {question}"""
+        return self.prompt_format(system_prompt, instruction)
 
-    instr_prompt = """Chat History:
-    {chat_history}
-    Follow Up Input: {question}
-    Standalone question:"""
+    def custom_que_prompt(self):
+        que_system_prompt = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question and give only the standalone question as output in the tags <question> and </question>.
+        """
 
-    return prompt_format(que_system_prompt, instr_prompt)
+        instr_prompt = """Chat History:
+        {chat_history}
+        Follow Up Input: {question}
+        Standalone question:"""
 
+        return self.prompt_format(que_system_prompt, instr_prompt)
 
-def get_retriever(code):
-    # store = create_kv_docstore(absolute_path_to_database_directory())
-    store = InMemoryStore()
-    parent_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=2048, chunk_overlap=256, length_function=len
-    )
-    child_splitter = RecursiveCharacterTextSplitter(chunk_size=400, length_function=len)
-    vectorstore = Chroma(
-        collection_name="db_collection",
-        embedding_function=embedding_chooser(),
-    )
-    retriever = ParentDocumentRetriever(
-        vectorstore=vectorstore,
-        docstore=store,
-        child_splitter=child_splitter,
-        parent_splitter=parent_splitter,
-    )
-    retriever.add_documents(code, ids=None)
-    return retriever
+    def get_retriever(self, code):
+        # store = create_kv_docstore(absolute_path_to_database_directory())
+        store = InMemoryStore()
+        parent_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=2048, chunk_overlap=256, length_function=len
+        )
+        child_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=400, length_function=len
+        )
+        vectorstore = Chroma(
+            collection_name="db_collection",
+            embedding_function=embedding_chooser(),
+        )
+        retriever = ParentDocumentRetriever(
+            vectorstore=vectorstore,
+            docstore=store,
+            child_splitter=child_splitter,
+            parent_splitter=parent_splitter,
+        )
+        retriever.add_documents(code, ids=None)
+        return retriever
 
+    def get_prompt(self):
+        globals.set_verbose(True)
+        model_template = self.model_prompt()
+        QA_CHAIN_PROMPT = PromptTemplate(
+            input_variables=["context", "question"], template=model_template
+        )
+        question_prompt = PromptTemplate.from_template(self.custom_que_prompt())
+        question_generator_chain = ConversationalRetrievalChain.from_llm(
+            llm=llm,
+            retriever=retriever,
+            memory=memory,
+            chain_type="stuff",
+            verbose=globals.get_verbose(),
+            combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
+            condense_question_prompt=question_prompt,
+        )
 
-def get_prompt():
-    globals.set_verbose(True)
-    model_template = model_prompt()
-    QA_CHAIN_PROMPT = PromptTemplate(
-        input_variables=["context", "question"], template=model_template
-    )
-    question_prompt = PromptTemplate.from_template(custom_que_prompt())
-    question_generator_chain = ConversationalRetrievalChain.from_llm(
-        llm=llm,
-        retriever=retriever,
-        memory=memory,
-        chain_type="stuff",
-        verbose=globals.get_verbose(),
-        combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
-        condense_question_prompt=question_prompt,
-    )
+    def get_conversation(self, retriever):
+        globals.set_verbose(True)
+        memory = ConversationBufferMemory(
+            memory_key="chat_history", return_messages=True
+        )
+        conversation_chain = ConversationalRetrievalChain.from_llm(
+            llm=st.session_state.llm,
+            retriever=retriever,
+            memory=memory,
+            verbose=globals.get_verbose(),
+        )
+        return conversation_chain
 
-
-def get_conversation(retriever):
-    globals.set_verbose(True)
-    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-    conversation_chain = ConversationalRetrievalChain.from_llm(
-        llm=st.session_state.llm,
-        retriever=retriever,
-        memory=memory,
-        verbose=globals.get_verbose(),
-    )
-    return conversation_chain
-
-
-def analyze_code(code):
-    # put to vectorstore
-    retriever = get_retriever(code)
-    # create conversation chain
-    st.session_state.conversation = get_conversation(retriever)
+    def analyze_code(self, code=None):
+        if not isinstance(self, parentChildChain):
+            raise TypeError("self is not an instance of parentChildChain")
+        code = load_code()
+        # put to vectorstore
+        retriever = self.get_retriever(code)
+        # create conversation chain
+        st.session_state.conversation = self.get_conversation(retriever)

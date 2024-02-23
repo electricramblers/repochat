@@ -107,5 +107,8 @@ def model_chooser():
 
 def ai_agent():
     ai_model, model_type = model_chooser()
-    llm = ai_model
+    if isinstance(ai_model, list):
+        llm = ai_model[0]
+    else:
+        llm = ai_model
     return llm, model_type

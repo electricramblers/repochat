@@ -14,13 +14,7 @@ from repochat.models import ai_agent, model_chooser
 from repochat.configmaker import create_yaml_file
 
 
-from repochat.chain import (
-    get_prompt,
-    get_retriever,
-    get_retriever,
-    get_conversation,
-    analyze_code,
-)
+from repochat.chain import parentChildChain
 
 from repochat.constants import (
     absolute_path_to_config,
@@ -279,14 +273,15 @@ def streamlit_init():
     if not st.session_state.get("analyze_code"):
         try:
             with st.spinner("Database Operation. This may take some time..."):
-                if analyze_code(load_code()):
-                    print(colored(f"line 166 app.py - code is {code}", "white"))
+                chain_instance = parentChildChain()
+                if chain_instance.analyze_code(load_code()):
+                    print(colored(f"line 277 app.py - code is {code}", "white"))
                     st.session_state["analyze_code"] = True
                     display_temporary_message("Code Analyzed Successfully")
         except GitCommandError as e:
             st.error(f"Error analyzing code repository: {str(e)}")
         except Exception as e:
-            st.error(f"line 171 in app.py - Unexpected error: {str(e)}")
+            st.error(f"line 283 in app.py - Unexpected error: {str(e)}")
 
     # -------------------------------------------------------------------------------
     # User Input
