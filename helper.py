@@ -13,11 +13,7 @@ from repochat.constants import (
 files = [
     "app.py",
     "repochat/db.py",
-    "repochat/chain.py",
     "repochat/models.py",
-    "repochat/utils.py",
-    "repochat/constants.py",
-    "repochat/git.py",
     "repochat/multiQueryChain.py",
 ]
 
@@ -32,6 +28,7 @@ with open("prompt.txt", "w") as outfile:
 
     # Iterate through each file
     for filename in files:
+        print(colored(f"Helper ingesting: {filename}\n", "cyan"))
         # Check if the file exists in the current directory or any subdirectories
         if any(
             os.path.isfile(os.path.join(root, filename)) for root, _, _ in os.walk(".")

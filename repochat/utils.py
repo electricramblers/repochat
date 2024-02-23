@@ -23,12 +23,6 @@ def pruner():
     allowed_file_extensions = config.get("allowed_file_extensions", [])
     blocked_files = config.get("blocked_files", [])
 
-    # print(
-    #    colored(
-    #        f"Deleting files based on blocked file paths: {blocked_file_paths}",
-    #        "light_cyan",
-    #    )
-    # )
     for path in blocked_file_paths:
         file_path = os.path.join(parent_directory, path)
         if os.path.exists(file_path):
@@ -48,13 +42,6 @@ def pruner():
 
     # Get disallowed file extensions
     disallowed_extensions = all_extensions - set(allowed_file_extensions)
-
-    # print(
-    #    colored(
-    #        f"Deleting files based on disallowed file extensions: {disallowed_extensions}",
-    #        "cyan",
-    #    )
-    # )
 
     def delete_disallowed_files():
         directory = absolute_path_to_repo_directory()

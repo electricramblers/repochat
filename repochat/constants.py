@@ -1,7 +1,16 @@
 import os
 import yaml
 import re
+import random
 from termcolor import colored
+
+
+def get_random_number():
+    try:
+        _ = RANDOMNUMBER
+    except:
+        result = random.randint(1, 9999999999)
+    return result
 
 
 def get_current_time_date():
@@ -76,3 +85,6 @@ def absolute_path_to_database_directory():
     parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
     database_path = os.path.join(parent_dir, f"database_{a}_{b}")
     return database_path
+
+
+RANDOMNUMBER = get_random_number()

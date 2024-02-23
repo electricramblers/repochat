@@ -3,6 +3,8 @@ import json
 import re
 import time
 import shutil
+import random
+import tempfile
 from git import Repo
 from git.exc import GitCommandError
 
@@ -13,6 +15,7 @@ from termcolor import colored
 from .utils import pruner
 
 from .constants import (
+    RANDOMNUMBER,
     absolute_path_to_config,
     configuration,
     absolute_path_to_repo_directory,
@@ -23,42 +26,60 @@ from .constants import (
 )
 
 
+def pre_clone_actions():
+    filename = RANDOMNUMBER
+    if configuration()["developer"]["debug"]:
+        print(
+            colored(
+                f"The tempfile name is: pre_clone_actions_lock_{filename}.tmp\n",
+                "magenta",
+            )
+        )
+    temp_dir = tempfile.gettempdir()
+    lock_file_path = os.path.join(temp_dir, f"pre_clone_actions_lock_{filename}.tmp")
+    repo_dir = absolute_path_to_repo_directory()
+    if not os.path.exists(lock_file_path):
+        if configuration()["developer"]["debug"]:
+            print(
+                colored(
+                    "line 33 git.py - pre_clone_actions has been invoked.\n", "magenta"
+                )
+            )
+        try:
+            shutil.rmtree(repo_dir)
+            time.sleep(2)
+        except Exception as e:
+            # print(colored(f"Error removing repository directory: {e}", "red"))
+            pass
+        try:
+            shutil.rmtree(absolute_path_to_database_directory())
+            time.sleep(2)
+        except Exception as e:
+            # print(colored(f"Error removing the database directory: {e}", "red"))
+            pass
+        with open(lock_file_path, "w") as lock_file:
+            lock_file.write(
+                "This is a lock file to prevent multiple executions of pre_clone_actions in the same session."
+            )
+    else:
+        print(
+            colored(
+                "pre_clone_actions() has already been executed in this session.", "cyan"
+            )
+        )
+
+
 def post_clone_actions():
     pruner()
 
 
 def clone_repository():
-    """
-    Clones a Git repository to the specified directory.
-
-    Args:
-        None
-
-    Returns:
-        None
-
-    Raises:
-        requests.exceptions.HTTPError: If the repository is private and the authentication credentials are invalid.
-        GitError: If there is an error cloning the repository.
-    """
     config = configuration()
     git_url = config["github"]["url"]
     repo_dir = absolute_path_to_repo_directory()
     username = config["github"]["username"]
     password = config["github"]["token"]
     branch = config["github"]["branch"]
-
-    try:
-        shutil.rmtree(repo_dir)
-        time.sleep(2)
-    except Exception as e:
-        print(colored(f"Error removing repository directory: {e}", "red"))
-
-    try:
-        shutil.rmtree(absolute_path_to_database_directory())
-        time.sleep(2)
-    except Exception as e:
-        print(colored(f"Error removing the database directory: {e}", "red"))
 
     # Test if the repository is public or private
     response = requests.head(git_url, allow_redirects=True)
