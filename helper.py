@@ -12,8 +12,7 @@ from repochat.constants import (
 # List of files to include
 files = [
     "app.py",
-    "repochat/db.py",
-    "repochat/models.py",
+    "multipage.py",
     "repochat/multiQueryChain.py",
 ]
 

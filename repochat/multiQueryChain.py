@@ -4,8 +4,12 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain_community.vectorstores import Chroma
 from langchain.callbacks.manager import CallbackManagerForRetrieverRun
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
+from langchain.callbacks.manager import CallbackManager, CallbackManagerForLLMRun
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
-# from typings import List
+from typing import List
 from pydantic import BaseModel, Field
 from langchain.chains import LLMChain
 from langchain.output_parsers import PydanticOutputParser
@@ -106,19 +110,32 @@ class multiQuery:
         )
         return retriever
 
-    def get_rag(self):
-        rag_chain = (
-            {
-                "context": self.retriever
-                | (lambda docs: "\n\n".join(doc.page_content for doc in docs)),
-                "question": RunnablePassthrough(),
-            }
-            | self.prompt
-            | self.llm
-            | StrOutputParser()
-        )
-        return rag_chain
+    def get_rag(self, question):
+        # Retrieve documents based on the question
+        mqRetriever = self.get_retriever(question)
 
-    def analyze_code(self, code):
+        # Assuming mqRetriever retrieves documents and we need to format them
+        # Here, we simulate retrieving and formatting documents
+        documents = mqRetriever.retrieve(
+            question
+        )  # This line is pseudo-code; replace with actual retrieval call
+
+        # Building the RAG chain
+        rag_chain = {
+            "context": "\n\n".join(doc.page_content for doc in documents),
+            "question": question,
+        }
+
+        # Process the RAG chain
+        # Assuming 'prompt', 'llm', and 'StrOutputParser' are methods or functions that process the input
+        formatted_input = self.prompt(rag_chain)
+        llm_output = self.llm(formatted_input)
+        result = StrOutputParser().parse(
+            llm_output
+        )  # Assuming StrOutputParser has a parse method
+
+        return result
+
+    def question_and_answer(self, question):
         retriever = self.get_retriever(code)
-        st.session_state.conversation = self.get_conversation(retriever)
+        st.session_state.conversation = self.get_rag(question)

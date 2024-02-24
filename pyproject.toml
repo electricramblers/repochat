@@ -22,6 +22,7 @@ htmltemplate = "^2.2.1"
 pypdf = "^4.0.2"
 textsplitter = "^1.0.3"
 langchain = "0.1.5"
+langchainhub = "^0.1.14"
 
 
 [build-system]

@@ -5,6 +5,9 @@ import time
 import shutil
 import random
 import tempfile
+
+import streamlit as st
+
 from git import Repo
 from git.exc import GitCommandError
 
@@ -12,10 +15,12 @@ import requests
 import urllib3
 
 from termcolor import colored
+
+from .db import vector_db, get_first_true_embedding, embedding_chooser
 from .utils import pruner
 
 from .constants import (
-    RANDOMNUMBER,
+    UUID,
     absolute_path_to_config,
     configuration,
     absolute_path_to_repo_directory,
@@ -27,46 +32,20 @@ from .constants import (
 
 
 def pre_clone_actions():
-    filename = RANDOMNUMBER
-    if configuration()["developer"]["debug"]:
-        print(
-            colored(
-                f"The tempfile name is: pre_clone_actions_lock_{filename}.tmp\n",
-                "magenta",
-            )
-        )
-    temp_dir = tempfile.gettempdir()
-    lock_file_path = os.path.join(temp_dir, f"pre_clone_actions_lock_{filename}.tmp")
     repo_dir = absolute_path_to_repo_directory()
-    if not os.path.exists(lock_file_path):
-        if configuration()["developer"]["debug"]:
-            print(
-                colored(
-                    "line 33 git.py - pre_clone_actions has been invoked.\n", "magenta"
-                )
-            )
-        try:
-            shutil.rmtree(repo_dir)
-            time.sleep(2)
-        except Exception as e:
-            # print(colored(f"Error removing repository directory: {e}", "red"))
-            pass
-        try:
-            shutil.rmtree(absolute_path_to_database_directory())
-            time.sleep(2)
-        except Exception as e:
-            # print(colored(f"Error removing the database directory: {e}", "red"))
-            pass
-        with open(lock_file_path, "w") as lock_file:
-            lock_file.write(
-                "This is a lock file to prevent multiple executions of pre_clone_actions in the same session."
-            )
-    else:
-        print(
-            colored(
-                "pre_clone_actions() has already been executed in this session.", "cyan"
-            )
-        )
+    try:
+        shutil.rmtree(repo_dir)
+        time.sleep(2)
+    except Exception as e:
+        # print(colored(f"Error removing repository directory: {e}", "red"))
+        pass
+    try:
+        shutil.rmtree(absolute_path_to_database_directory())
+        time.sleep(2)
+    except Exception as e:
+        # print(colored(f"Error removing the database directory: {e}", "red"))
+        pass
+    return
 
 
 def post_clone_actions():
@@ -101,3 +80,12 @@ def clone_repository():
     except Exception as e:
         print(colored(f"Error cloning repository: {e}", "red"))
         return False
+
+
+def all_repository_actions():
+    pre_clone_actions()
+    clone_repository()
+    pruner()
+    post_clone_actions()
+    vector_db()
+    st.session_state.clone_repository = False

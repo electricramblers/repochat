@@ -98,7 +98,11 @@ def model_chooser():
     elif openrouter:
         ai_model = config["models"]["openrouter"]["low"]
         api_key = config["keys"]["openrouter"]
-        model_to_use = OpenRouterLLM(model_name=ai_model, openai_api_key=api_key)
+        model_to_use = OpenRouterLLM(
+            model_name=ai_model,
+            callbacks=[StreamingStdOutCallbackHandler()],
+            openai_api_key=api_key,
+        )
         return model_to_use, "openrouter"
     else:
         print(colored("Error. No AI Model Available.", "red"))

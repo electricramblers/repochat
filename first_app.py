@@ -7,25 +7,16 @@ import json
 import yaml
 from git.exc import GitCommandError
 from termcolor import colored
+from langchain.storage import InMemoryStore
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-
-from altPages import index, viewEditConfiguration
-from multipage import MultiPage
-
-from repochat.git import (
-    clone_repository,
-    post_clone_actions,
-    pre_clone_actions,
-    all_repository_actions,
-)
+from repochat.git import clone_repository, post_clone_actions, pre_clone_actions
 from repochat.db import (
     embedding_chooser,
     get_first_true_embedding,
     load_code,
     vector_db,
 )
-
-
 from repochat.models import ai_agent, model_chooser
 from repochat.configmaker import create_yaml_file
 from repochat.chain import parentChildChain
@@ -40,7 +31,6 @@ from repochat.constants import (
     database_name_only,
     get_current_time_date,
 )
-
 
 # -------------------------------------------------------------------------------
 # Create a generic config.yaml if it is not there
@@ -57,10 +47,12 @@ def create_config_if_missing():
 # -------------------------------------------------------------------------------
 
 
-def main_window_spinner(function, message):
-    with st.spinner(message):
-        result = function
-        time.sleep(3)
+def is_json(myjson):
+    try:
+        json_object = json.loads(myjson)
+    except ValueError as e:
+        return False
+    return True
 
 
 def extract_model_name():
@@ -189,10 +181,16 @@ def sidebar_custom_css():
 # Functions that are needed to initialize streamlit.
 # -------------------------------------------------------------------------------
 def init():
+    if "pre_clone_actions" not in st.session_state:
+        st.session_state.pre_clone_actions = False
     if "clone_repository" not in st.session_state:
-        st.session_state.clone_repository = False
-    if "conversation_history" not in st.session_state:
-        st.session_state.conversation_history = False
+        st.session_state.clone_repository = None
+    if "post_clone_actions" not in st.session_state:
+        st.session_state.post_clone_actions = False
+    if "vector_database" not in st.session_state:
+        st.session_state.vector_database = False
+    if "analyze_code" not in st.session_state:
+        st.session_state.analyze_code = None
     if "conversation" not in st.session_state:
         st.session_state.conversation = {}
     if "chat_history" not in st.session_state:
@@ -204,7 +202,6 @@ def page_config():
         page_title="The Amazing Articulate Automaton of Assemblege",
         page_icon=":scroll:",
     )
-    apply_custom_css()
 
 
 # -------------------------------------------------------------------------------
@@ -240,72 +237,123 @@ def handle_user_input(user_input):
 
 
 # -------------------------------------------------------------------------------
-# Multipage App Definitions
-# -------------------------------------------------------------------------------
-
-
-def multipages():
-    app = MultiPage()
-    app.add_page("Home", index.app)
-    app.add_page("View/Edit Configuration", viewEditConfiguration.app)
-    app.run()
-
-
-# -------------------------------------------------------------------------------
-# Sidebar definition
-# -------------------------------------------------------------------------------
-
-
-def sidebar_function():
-    github_url = configuration()["github"]["url"]
-    github_branch = configuration()["github"]["branch"]
-    with st.sidebar:
-        st.sidebar.markdown(f"# Repository:")
-        repo_path = absolute_path_to_repo_directory()
-        if os.path.exists(repo_path):
-            st.sidebar.write(f"{github_url}")
-            st.sidebar.caption(
-                f"<strong>Branch:</strong> {github_branch}", unsafe_allow_html=True
-            )
-        else:
-            st.sidebar.write(f"Repository needs cloned.")
-            st.sidebar.caption(f"<strong>Branch:</strong> None", unsafe_allow_html=True)
-        st.divider()
-        conversation_history_on = st.toggle(
-            "Conversation history.",
-            value=False,
-        )
-
-        st.button(
-            f"Clone Repository",
-            use_container_width=True,
-            on_click=lambda: main_window_spinner(
-                all_repository_actions(), "Cloning Repository..."
-            ),
-        )
-
-        st.divider()
-        if configuration()["developer"]["debug"]:
-            st.sidebar.button("Meta Helper", on_click=lambda: run_helper())
-        st.sidebar.divider()
-        # ----------------------------------------------------------------------
-        # Temporary Messages
-        # ----------------------------------------------------------------------
-
-        if conversation_history_on and not st.session_state.conversation_history:
-            display_temporary_message("Conversation history activated!")
-            st.session_state.conversation_history = True
-        else:
-            st.session_state.conversation_history = False
-        if clone_repository and not st.session_state.clone_repository:
-            display_temporary_message("Repository cloned!")
-            st.session_state.clone_repository = True
-
-
-# -------------------------------------------------------------------------------
 # Streamlit Main Function
 # -------------------------------------------------------------------------------
 def streamlit_init():
+    # -------------------------------------------------------------------------------
+    # Configuraiton
+    # -------------------------------------------------------------------------------
+    config = configuration()
+    github_url = config["github"]["url"]
+    github_branch = config["github"]["branch"]
+
+    # -------------------------------------------------------------------------------
+    # Main streamlit application
+    # -------------------------------------------------------------------------------
+    st.header(":scroll: The Amazing Articulate Automaton of Assemblege")
+
+    # -------------------------------------------------------------------------------
+    # Pre clone activities
+    # -------------------------------------------------------------------------------
+
+    if not st.session_state.get("pre_clone_actions"):
+        try:
+            with st.spinner("Attempting to remove directories."):
+                if pre_clone_actions():
+                    st.session_state["pre_clone_actions"] = True
+                    display_temporary_message("Directories removed successfully")
+        except GitCommandError as e:
+            st.error(f"Error removing directories: {str(e)}")
+        except Exception as e:
+            st.error(f"line 278 app.py - Unexpected error: {str(e)}")
+
+    # -------------------------------------------------------------------------------
+    # Cloning the repository
+    # -------------------------------------------------------------------------------
+    if not st.session_state.get("clone_repository"):
+        try:
+            with st.spinner("Attempting to clone the repository."):
+                if clone_repository():
+                    st.session_state["clone_repository"] = True
+                    display_temporary_message(
+                        "Repository cloned and processed successfully"
+                    )
+        except GitCommandError as e:
+            st.error(f"Error cloning repository: {str(e)}")
+        except Exception as e:
+            st.error(f"Unexpected error: {str(e)}")
+
+    # -------------------------------------------------------------------------------
+    # Prune the cloned database
+    # -------------------------------------------------------------------------------
+
+    if not st.session_state.get("post_clone_actions"):
+        time.sleep(2)
+        try:
+            with st.spinner("Attempting to prune the repository."):
+                if post_clone_actions():
+                    st.session_state["post_clone_actions"] = True
+                    display_temporary_message("Repository pruned successfully")
+        except GitCommandError as e:
+            st.error(f"Error pruning repository: {str(e)}")
+        except Exception as e:
+            st.error(f"Unexpected error: {str(e)}")
+
+    # -------------------------------------------------------------------------------
+    # Create the vector database
+    # -------------------------------------------------------------------------------
+    if not st.session_state.get("vector_database"):
+        try:
+            with st.spinner("Attempting to create the database."):
+                if vector_db():
+                    st.session_state["vector_database"] = True
+                    display_temporary_message("Database created successfully.")
+        except GitCommandError as e:
+            st.error(f"Error creating database: {str(e)}")
+        except Exception as e:
+            st.error(f"line 314 app.py -Unexpected error: {str(e)}")
+
+    # -------------------------------------------------------------------------------
+    # Analyze the code
+    # -------------------------------------------------------------------------------
+    if not st.session_state.get("analyze_code"):
+        try:
+            with st.spinner("Database Operation. This may take some time..."):
+                mq = multiQuery()
+                if mq.analyze_code(load_code()):
+                    st.session_state["analyze_code"] = True
+                    display_temporary_message("Code Analyzed Successfully")
+        except GitCommandError as e:
+            st.error(f"Error analyzing code repository: {str(e)}")
+        except Exception as e:
+            st.error(f"line 329 in app.py - Unexpected error: {str(e)}")
+
+    # -------------------------------------------------------------------------------
+    # User Input
+    # -------------------------------------------------------------------------------
+    user_input = st.chat_input("Enter you question or query.")
+    if user_input:
+        with st.spinner("Processing..."):
+            handle_user_input(user_input)
+
+    # -------------------------------------------------------------------------------
+    # sidebar application
+    # -------------------------------------------------------------------------------
+
+    with st.sidebar:
+        sidebar_model()
+        st.sidebar.markdown(f"# Repository:")
+        st.sidebar.write(f"{github_url}")
+        st.sidebar.caption(
+            f"<strong>Branch:</strong> {github_branch}", unsafe_allow_html=True
+        )
+        st.divider()
+        st.sidebar.button(
+            "Edit Config", on_click=lambda: open_config_file(absolute_path_to_config())
+        )
+        if configuration()["developer"]["debug"]:
+            st.sidebar.button("Meta Helper", on_click=lambda: run_helper())
+            st.sidebar.divider()
     return
 
 
@@ -315,10 +363,10 @@ def streamlit_init():
 
 
 def main():
+    create_config_if_missing()
     init()
     page_config()
-    multipages()
-    sidebar_function()
+    sidebar_custom_css()
     streamlit_init()
     return
 

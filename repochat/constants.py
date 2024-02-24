@@ -2,15 +2,19 @@ import os
 import yaml
 import re
 import random
+import uuid
 from termcolor import colored
 
 
-def get_random_number():
+class ConstantsNamespace:
+    stage1 = uuid.uuid4()
     try:
-        _ = RANDOMNUMBER
+        _ = UUID
     except:
-        result = random.randint(1, 9999999999)
-    return result
+        UUID = str(stage1)
+
+    def __setattr__(self, name, value):
+        raise AttributeError(colored(f"Cannot reassign constant '{name}'", "red"))
 
 
 def get_current_time_date():
@@ -87,4 +91,4 @@ def absolute_path_to_database_directory():
     return database_path
 
 
-RANDOMNUMBER = get_random_number()
+UUID = str(ConstantsNamespace.stage1)
