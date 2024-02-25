@@ -3,6 +3,7 @@ import time
 import os
 import subprocess
 import sys
+import traceback
 import json
 import yaml
 from git.exc import GitCommandError

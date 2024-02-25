@@ -61,12 +61,13 @@ def embedding_chooser():
 
 
 def vector_db():
+    config = configuration()
     database_path = absolute_path_to_database_directory()
     code = load_code()
-    embeddings = embedding_chooser()
+    embeddings = HuggingFaceEmbeddings(model_name=config["models"]["embedding"])
     db_name_only = database_name_only()
     persist_directory = absolute_path_to_database_directory()
-    collection_name = f"db_{db_name_only}"
+    collection_name = f"db_collection"
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=2048, chunk_overlap=256, length_function=len
     )

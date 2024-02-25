@@ -12,8 +12,10 @@ from repochat.constants import (
 # List of files to include
 files = [
     "app.py",
+    "altPages/index.py",
     "multipage.py",
     "repochat/multiQueryChain.py",
+    "repochat/db.py",
 ]
 
 ADDED_TEXT = """The code from multiple files is present in this prompt.  Each file name looks like "# <something>.py"
