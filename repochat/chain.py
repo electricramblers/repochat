@@ -20,7 +20,7 @@ import streamlit as st
 
 from .models import ai_agent
 
-from .db import load_code, embedding_chooser
+from .db import load_code, hf_embeddings
 
 from .constants import (
     absolute_path_to_config,
@@ -79,7 +79,7 @@ class parentChildChain:
         )
         vectorstore = Chroma(
             collection_name="db_collection",
-            embedding_function=embedding_chooser(),
+            embedding_function=hf_embeddings(),
         )
         retriever = ParentDocumentRetriever(
             vectorstore=vectorstore,

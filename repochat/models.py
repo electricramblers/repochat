@@ -54,7 +54,8 @@ def model_chooser():
             local_ollama = True
         except (FileNotFoundError, subprocess.CalledProcessError) as e:
             local_ollama = False
-            print(colored(f"Local ollama failed. Error: {e}", "magenta"))
+            if configuration()["developer"]["debug"]:
+                print(colored(f"Local ollama failed. Error: {e}", "magenta"))
     else:
         local_ollama = False
     if escalate:
@@ -64,12 +65,13 @@ def model_chooser():
             host = parsed_url.hostname
             port = parsed_url.port
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(20)
+            s.settimeout(2)
             s.connect((host, port))
             s.close()
             remote_ollama = True
         except Exception as e:
-            print(colored(f"Remote ollama failed. Error: {e}", "magenta"))
+            if configuration()["developer"]["debug"]:
+                print(colored(f"Remote ollama failed. Error: {e}", "magenta"))
             remote_ollama = False
     else:
         remote_ollama = False

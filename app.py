@@ -20,9 +20,6 @@ from repochat.git import (
     all_repository_actions,
 )
 from repochat.db import (
-    embedding_chooser,
-    get_first_true_embedding,
-    load_code,
     vector_db,
 )
 

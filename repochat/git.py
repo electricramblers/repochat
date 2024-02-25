@@ -16,7 +16,7 @@ import urllib3
 
 from termcolor import colored
 
-from .db import vector_db, get_first_true_embedding, embedding_chooser
+from .db import vector_db
 from .utils import pruner
 
 from .constants import (
@@ -85,7 +85,5 @@ def clone_repository():
 def all_repository_actions():
     pre_clone_actions()
     clone_repository()
-    pruner()
     post_clone_actions()
     vector_db()
-    st.session_state.clone_repository = False

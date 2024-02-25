@@ -5,7 +5,7 @@ from langchain import hub
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 
-from .db import vector_db, get_first_true_embedding, embedding_chooser
+from .db import vector_db
 from .models import ai_agent
 
 from .constants import (
@@ -27,30 +27,29 @@ class multiQuery:
         self.prompt = hub.pull("defishguy/rag-prompt")
         self.persist_dir = absolute_path_to_database_directory()
         self.db = vector_db()
-        self.retriever = self.db.as_retriever()
-
-        self.prompt = hub.pull("defishguy/rag-prompt")
-        self.rag_chain = (
-            {
-                "context": self.retriever
-                | (lambda docs: "\n\n".join(doc.page_content for doc in docs)),
-                "question": RunnablePassthrough(),
-            }
-            | self.prompt
-            | self.llm
-            | StrOutputParser()
+        self.retriever = MultiQueryRetriever.from_llm(
+            retriever=self.db.as_retriever(), llm=self.llm
         )
+        self.prompt = hub.pull("defishguy/rag-prompt")
+        if self.retriever is not None:
+            self.rag_chain = (
+                {
+                    "context": self.retriever
+                    | (lambda docs: "\n\n".join(doc.page_content for doc in docs)),
+                    "question": RunnablePassthrough(),
+                }
+                | self.prompt
+                | self.llm
+                | StrOutputParser()
+            )
+        else:
+            self.rag_chain = None
 
     def question_and_answer(self, question):
-        result = self.rag_chain.invoke(question)
-        return result
-
-
-# Streamlit application to take user input and display answers
-# def main():
-#    st.title("Question Answering System")
-#    question = st.text_input("Ask a question:")
-#    if question:
-#        qa_system = QuestionAnsweringSystem()
-#        answer = qa_system.answer_question(question)
-#        st.text(answer)
+        if self.rag_chain is not None:
+            result = self.rag_chain.invoke(question)
+            return result
+        else:
+            return (
+                "Unable to process the question as the vector database does not exist."
+            )
